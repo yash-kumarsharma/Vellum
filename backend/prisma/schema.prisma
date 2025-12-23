@@ -30,5 +30,26 @@ model Form {
   ownerId   String
   owner     User     @relation(fields: [ownerId], references: [id])
   isPublic  Boolean  @default(true)
+  questions Question[]
   createdAt DateTime @default(now())
+}
+
+enum QuestionType {
+  TEXT
+  MULTIPLE_CHOICE
+  CHECKBOX
+  DROPDOWN
+  DATE
+}
+
+model Question {
+  id        String       @id @default(uuid())
+  formId    String
+  form      Form         @relation(fields: [formId], references: [id], onDelete: Cascade)
+  type      QuestionType
+  label     String
+  options   Json?
+  required  Boolean      @default(false)
+  order     Int
+  createdAt DateTime     @default(now())
 }
