@@ -5,6 +5,8 @@ const errorHandler = require("./middlewares/error.middleware");
 const formRoutes = require("./modules/forms/forms.routes");
 const questionRoutes = require("./modules/questions/questions.routes");
 const responseRoutes = require("./modules/responses/responses.routes");
+const collaboratorRoutes = require("./modules/collaborators/collaborators.routes");
+app.use("/api/collaborators", collaboratorRoutes);
 
 const app = express();
 

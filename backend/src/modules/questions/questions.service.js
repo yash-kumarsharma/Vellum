@@ -1,7 +1,8 @@
 const prisma = require("../../config/db");
+const { getIO } = require("../../config/socket");
 
 const addQuestion = async (formId, data) => {
-  return prisma.question.create({
+  const question = await prisma.question.create({
     data: {
       formId,
       type: data.type,
@@ -11,6 +12,9 @@ const addQuestion = async (formId, data) => {
       order: data.order
     }
   });
+
+  getIO().to(`form:${formId}`).emit("question:added", question);
+  return question;
 };
 
 const getFormQuestions = async (formId) => {

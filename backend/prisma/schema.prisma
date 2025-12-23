@@ -62,3 +62,16 @@ model Response {
   answers   Json
   createdAt DateTime @default(now())
 }
+
+enum CollaboratorRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+model Collaborator {
+  id        String @id @default(uuid())
+  userId    String
+  formId    String
+  role      CollaboratorRole
+}

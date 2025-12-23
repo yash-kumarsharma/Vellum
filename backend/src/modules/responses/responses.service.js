@@ -1,12 +1,18 @@
 const prisma = require("../../config/db");
+const { getIO } = require("../../config/socket");
 
 const submitResponse = async (formId, answers) => {
-  return prisma.response.create({
-    data: {
-      formId,
-      answers
-    }
+  const response = await prisma.response.create({
+    data: { formId, answers }
   });
+
+  // 🔥 Emit realtime update
+  getIO().to(`form:${formId}`).emit("response:new", {
+    formId,
+    responseId: response.id
+  });
+
+  return response;
 };
 
 const getFormResponses = async (formId) => {
