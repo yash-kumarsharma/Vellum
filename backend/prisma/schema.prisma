@@ -31,6 +31,7 @@ model Form {
   owner     User     @relation(fields: [ownerId], references: [id])
   isPublic  Boolean  @default(true)
   questions Question[]
+  responses Response[]
   createdAt DateTime @default(now())
 }
 
@@ -52,4 +53,12 @@ model Question {
   required  Boolean      @default(false)
   order     Int
   createdAt DateTime     @default(now())
+}
+
+model Response {
+  id        String   @id @default(uuid())
+  formId    String
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  answers   Json
+  createdAt DateTime @default(now())
 }
