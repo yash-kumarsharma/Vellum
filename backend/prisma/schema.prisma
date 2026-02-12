@@ -20,19 +20,22 @@ model User {
   email     String   @unique
   password  String
   name      String
-  forms     Form[]
-  createdAt DateTime @default(now())
+  forms         Form[]
+  collaborations Collaborator[]
+  createdAt     DateTime @default(now())
 }
 
 model Form {
   id        String   @id @default(uuid())
-  title     String
+  title       String
+  description String?
   ownerId   String
   owner     User     @relation(fields: [ownerId], references: [id])
   isPublic  Boolean  @default(true)
-  questions Question[]
-  responses Response[]
-  createdAt DateTime @default(now())
+  questions     Question[]
+  responses     Response[]
+  collaborators Collaborator[]
+  createdAt     DateTime @default(now())
 }
 
 enum QuestionType {
@@ -70,8 +73,10 @@ enum CollaboratorRole {
 }
 
 model Collaborator {
-  id        String @id @default(uuid())
+  id        String           @id @default(uuid())
   userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   formId    String
+  form      Form             @relation(fields: [formId], references: [id], onDelete: Cascade)
   role      CollaboratorRole
 }

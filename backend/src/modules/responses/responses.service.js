@@ -7,10 +7,14 @@ const submitResponse = async (formId, answers) => {
   });
 
   // 🔥 Emit realtime update
-  getIO().to(`form:${formId}`).emit("response:new", {
-    formId,
-    responseId: response.id
-  });
+  try {
+    getIO().to(`form:${formId}`).emit("response:new", {
+      formId,
+      responseId: response.id
+    });
+  } catch (err) {
+    console.error("Realtime update failed:", err.message);
+  }
 
   return response;
 };

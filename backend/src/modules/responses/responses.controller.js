@@ -14,7 +14,9 @@ const submit = async (req, res, next) => {
 
 const list = async (req, res, next) => {
   try {
+    console.log('Fetching responses for formId:', req.params.formId);
     const responses = await service.getFormResponses(req.params.formId);
+    console.log('Found responses count:', responses.length);
     res.json(responses);
   } catch (err) {
     next(err);
