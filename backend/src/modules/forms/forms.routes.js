@@ -5,9 +5,9 @@ const auth = require("../../middlewares/auth.middleware");
 
 router.post("/", auth, controller.create);
 router.get("/", auth, controller.list);
+router.get("/public/:id", controller.getPublic);
 router.get("/:id", auth, controller.getOne);
 router.put("/:id", auth, controller.update);
-router.get("/public/:id", controller.getPublic);
 router.delete("/:id", auth, controller.remove);
 
 module.exports = router;
