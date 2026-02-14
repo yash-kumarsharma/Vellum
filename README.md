@@ -1,31 +1,19 @@
 <div align="center">
 
-# 🖋️ FormForge
+# 🖋️ Vellum
 
 ### *The Premium Form Studio*
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yash-kumarsharma/formforge)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/react-18.3.1-61dafb.svg?logo=react)](https://reactjs.org/)
-[![Express](https://img.shields.io/badge/express-5.2.1-000000.svg?logo=express)](https://expressjs.com/)
-[![PostgreSQL](https://img.shields.io/badge/postgresql-latest-336791.svg?logo=postgresql)](https://www.postgresql.org/)
-[![Prisma](https://img.shields.io/badge/prisma-5.22.0-2D3748.svg?logo=prisma)](https://www.prisma.io/)
-[![Vite](https://img.shields.io/badge/vite-5.0.0-646CFF.svg?logo=vite)](https://vitejs.dev/)
+[![Deployed](https://img.shields.io/badge/status-deployed-success.svg)](https://vercel.com/)
 
 **A high-end, full-stack form creation platform designed for those who value clarity, precision, and a premium user experience.**
 
-[Features](#-core-features) • [Tech Stack](#-tech-stack) • [Installation](#️-installation--setup) • [API](#-api-endpoints) • [Deployment](#-deployment)
+[Features](#-core-features) • [Tech Stack](#-tech-stack) • [Installation](#️-installation--setup) • [API](#-api-endpoints)
 
 </div>
-
----
-
-## 📸 Screenshots
-
-![FormForge Dashboard](file:///C:/Users/Yash/.gemini/antigravity/brain/e8cb1e2f-75b0-4c48-bc4b-8418ac68acd7/vellum_hero_illustration_1770929356456.png)
-
-> *Modern, elegant interface with glassmorphism effects and dynamic theming*
 
 ---
 
@@ -59,28 +47,25 @@
 
 ## 🚀 Tech Stack
 
-### Frontend
-![React](https://img.shields.io/badge/React-18.3.1-61dafb?logo=react&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-5.0.0-646CFF?logo=vite&logoColor=white)
-![React Router](https://img.shields.io/badge/React_Router-6.20.0-CA4245?logo=react-router&logoColor=white)
-![Framer Motion](https://img.shields.io/badge/Framer_Motion-10.16.4-0055FF?logo=framer&logoColor=white)
-![Lucide Icons](https://img.shields.io/badge/Lucide_Icons-0.292.0-F56565?logo=lucide&logoColor=white)
-![Axios](https://img.shields.io/badge/Axios-1.6.2-5A29E4?logo=axios&logoColor=white)
-
-### Backend
-![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)
-![Express](https://img.shields.io/badge/Express-5.2.1-000000?logo=express&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-5.22.0-2D3748?logo=prisma&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-latest-336791?logo=postgresql&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-9.0.3-000000?logo=jsonwebtokens&logoColor=white)
-![Socket.io](https://img.shields.io/badge/Socket.io-4.8.1-010101?logo=socket.io&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-5.10.0-DC382D?logo=redis&logoColor=white)
-
-### DevOps & Tools
-![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?logo=vercel&logoColor=white)
-![Git](https://img.shields.io/badge/Git-Version_Control-F05032?logo=git&logoColor=white)
-![Nodemon](https://img.shields.io/badge/Nodemon-3.1.11-76D04B?logo=nodemon&logoColor=white)
-![Jest](https://img.shields.io/badge/Jest-30.2.0-C21325?logo=jest&logoColor=white)
+| Category | Technology | Version | Purpose |
+|----------|-----------|---------|---------|
+| **Frontend** | React | 18.3.1 | UI Library |
+| | Vite | 5.0.0 | Build Tool & Dev Server |
+| | React Router | 6.20.0 | Client-side Routing |
+| | Framer Motion | 10.16.4 | Animations |
+| | Lucide React | 0.292.0 | Icon Library |
+| | Axios | 1.6.2 | HTTP Client |
+| **Backend** | Node.js | 18+ | Runtime Environment |
+| | Express | 5.2.1 | Web Framework |
+| | Prisma | 5.22.0 | ORM & Database Toolkit |
+| | PostgreSQL | Latest | Relational Database |
+| | JWT | 9.0.3 | Authentication |
+| | Socket.io | 4.8.1 | Real-time Communication |
+| | Redis | 5.10.0 | Caching & Session Store |
+| **DevOps** | Vercel | - | Hosting & Deployment |
+| | Git | - | Version Control |
+| | Nodemon | 3.1.11 | Development Hot Reload |
+| | Jest | 30.2.0 | Testing Framework |
 
 ---
 
@@ -225,48 +210,6 @@ formforge/
 
 ---
 
-## 🌐 Deployment
-
-### Vercel (Recommended)
-
-FormForge is optimized for deployment on Vercel with zero configuration:
-
-1. **Push to GitHub**
-   ```bash
-   git add .
-   git commit -m "Ready for deployment"
-   git push origin main
-   ```
-
-2. **Import to Vercel**
-   - Visit [vercel.com](https://vercel.com)
-   - Click "New Project"
-   - Import your GitHub repository
-
-3. **Configure Environment Variables**
-   Add the following in Vercel dashboard:
-   - `DATABASE_URL`
-   - `JWT_SECRET`
-   - `NODE_ENV=production`
-
-4. **Deploy**
-   - Vercel will automatically detect the configuration
-   - Build and deployment happen automatically
-
-### Manual Deployment
-
-```bash
-# Build frontend
-cd frontend
-npm run build
-
-# Start production server
-cd ../backend
-npm start
-```
-
----
-
 ## 🧪 Testing
 
 ```bash
@@ -344,7 +287,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 <div align="center">
 
-**FormForge** - *Crafting beautiful forms for the modern web* ✨
+**Vellum** - *Crafting beautiful forms for the modern web* ✨
 
 Made with ❤️ by [Yash Kumar Sharma](https://github.com/yash-kumarsharma)
 
