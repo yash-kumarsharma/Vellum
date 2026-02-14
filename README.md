@@ -1,148 +1,143 @@
-<div align="center">
-
 # 🖋️ Vellum
 
-### *The Premium Form Studio*
+A high-end, full-stack form creation platform designed for those who value clarity, precision, and a premium user experience. Built with modern aesthetics and micro-interactions, Vellum elevates simple data collection into a creative studio experience.
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yash-kumarsharma/formforge)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
-[![Deployed](https://img.shields.io/badge/status-deployed-success.svg)](https://vercel.com/)
-
-**A high-end, full-stack form creation platform designed for those who value clarity, precision, and a premium user experience.**
-
-[Features](#-core-features) • [Tech Stack](#-tech-stack) • [Installation](#️-installation--setup) • [API](#-api-endpoints)
-
-</div>
+![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat-square)
+![React](https://img.shields.io/badge/React-18.3.1-61dafb?style=flat-square)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Latest-336791?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
 ---
 
-## ✨ Core Features
+## ✨ Features
 
 ### 🎨 Design & Personalization
-- **🌓 Dynamic Theming**: True Dark/Light mode support across the entire platform, integrated with the global design system
-- **👤 User Identity**: Personalized profile avatars with custom color synchronization
-- **💎 Premium UI**: Glassmorphism effects, smooth hover-scale transitions, and high-fidelity iconography powered by Lucide React
-- **🎨 HSL-Based Design System**: Semantic color tokens for consistent, maintainable styling
+- **Dynamic Theming**: True Dark/Light mode support across the entire platform, integrated with the global design system
+- **User Identity**: Personalized profile avatars with custom color synchronization
+- **Premium UI**: Glassmorphism effects, smooth hover-scale transitions, and high-fidelity iconography powered by Lucide React
+- **HSL-Based Design System**: Semantic color tokens for consistent, maintainable styling
 
 ### 🛠️ Studio Features
-- **📋 Template Gallery**: Start instantly with curated templates for Feedback, Events, and Market Research
-- **✏️ Sophisticated Editor**: Real-time form building with complex question types:
+- **Template Gallery**: Start instantly with curated templates for Feedback, Events, and Market Research
+- **Sophisticated Editor**: Real-time form building with complex question types:
   - Multiple Choice
   - Checkboxes
   - Short Answer
   - Long Answer
   - And more...
-- **🔒 Access Control**: Securely toggle forms between 'Live' and 'Private' modes for total privacy control
-- **📱 Responsive Design**: Seamless experience across desktop, tablet, and mobile devices
+- **Access Control**: Securely toggle forms between 'Live' and 'Private' modes for total privacy control
+- **Responsive Design**: Seamless experience across desktop, tablet, and mobile devices
 
 ### 📊 Intelligence & Management
-- **📈 Live Analytics**: Real-time response aggregation visible directly on your studio dashboard
-- **🔍 Universal Search**: Instantly find your work with a lightning-fast dashboard search engine
-- **🔔 Studio Toast System**: A refined, internal notification system replacing intrusive browser alerts
-- **📤 Export Capabilities**: Download form responses in Excel format for further analysis
-- **⚡ Real-time Updates**: WebSocket integration for live form response notifications
+- **Live Analytics**: Real-time response aggregation visible directly on your studio dashboard
+- **Universal Search**: Instantly find your work with a lightning-fast dashboard search engine
+- **Studio Toast System**: A refined, internal notification system replacing intrusive browser alerts
+- **Export Capabilities**: Download form responses in Excel format for further analysis
+- **Real-time Updates**: WebSocket integration for live form response notifications
+
+### 🚀 Technical Highlights
+- RESTful API architecture
+- JWT-based authentication
+- Prisma ORM with PostgreSQL
+- Real-time communication with Socket.io
+- Redis caching for performance
+- Modular architecture with separation of concerns
 
 ---
 
-## 🚀 Tech Stack
+## 🛠️ Tech Stack
 
-| Category | Technology | Version | Purpose |
-|----------|-----------|---------|---------|
-| **Frontend** | React | 18.3.1 | UI Library |
-| | Vite | 5.0.0 | Build Tool & Dev Server |
-| | React Router | 6.20.0 | Client-side Routing |
-| | Framer Motion | 10.16.4 | Animations |
-| | Lucide React | 0.292.0 | Icon Library |
-| | Axios | 1.6.2 | HTTP Client |
-| **Backend** | Node.js | 18+ | Runtime Environment |
-| | Express | 5.2.1 | Web Framework |
-| | Prisma | 5.22.0 | ORM & Database Toolkit |
-| | PostgreSQL | Latest | Relational Database |
-| | JWT | 9.0.3 | Authentication |
-| | Socket.io | 4.8.1 | Real-time Communication |
-| | Redis | 5.10.0 | Caching & Session Store |
-| **DevOps** | Vercel | - | Hosting & Deployment |
-| | Git | - | Version Control |
-| | Nodemon | 3.1.11 | Development Hot Reload |
-| | Jest | 30.2.0 | Testing Framework |
+### Backend
+- **Node.js 18+**
+- **Express 5.2.1**
+  - RESTful API
+  - Middleware architecture
+  - Session management
+- **PostgreSQL** (Latest)
+- **Prisma ORM 5.22.0**
+- **JWT 9.0.3** (Authentication)
+- **Socket.io 4.8.1** (Real-time)
+- **Redis 5.10.0** (Caching)
+
+### Frontend
+- **React 18.3.1** (UI Library)
+- **Vite 5.0.0** (Build tool)
+- **React Router 6.20.0** (Routing)
+- **Framer Motion 10.16.4** (Animations)
+- **Lucide React 0.292.0** (Icons)
+- **Axios 1.6.2** (HTTP Client)
+
+### Tools & Libraries
+- **Vercel** (Deployment)
+- **Git** (Version control)
+- **Nodemon 3.1.11** (Development)
+- **Jest 30.2.0** (Testing)
+- **BCrypt 6.0.0** (Password encryption)
 
 ---
 
-## 🛠️ Installation & Setup
+## � Getting Started
 
 ### Prerequisites
-- **Node.js** (v18 or higher) - [Download](https://nodejs.org/)
-- **PostgreSQL** - [Download](https://www.postgresql.org/download/)
-- **npm** or **yarn** package manager
+- Node.js 18 or higher
+- PostgreSQL 14 or higher
+- npm or yarn
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/yash-kumarsharma/formforge.git
-cd formforge
-```
+### Installation
 
-### 2. Environment Configuration
-Create a `.env` file in the `backend/` directory:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yash-kumarsharma/formforge.git
+   cd formforge
+   ```
 
-```env
-# Server Configuration
-PORT=4000
-NODE_ENV=development
+2. **Configure Environment Variables**
+   
+   Create a `.env` file in the `backend/` directory:
+   ```env
+   # Server Configuration
+   PORT=4000
+   NODE_ENV=development
 
-# Database Configuration
-DATABASE_URL="postgresql://username:password@localhost:5432/formforge?schema=public"
+   # Database Configuration
+   DATABASE_URL="postgresql://username:password@localhost:5432/vellum?schema=public"
 
-# JWT Configuration
-JWT_SECRET="your_super_secret_jwt_key_here"
+   # JWT Configuration
+   JWT_SECRET="your_super_secret_jwt_key_here"
 
-# Redis Configuration (Optional)
-REDIS_URL="redis://localhost:6379"
+   # Redis Configuration (Optional)
+   REDIS_URL="redis://localhost:6379"
 
-# CORS Configuration
-FRONTEND_URL="http://localhost:5173"
-```
+   # CORS Configuration
+   FRONTEND_URL="http://localhost:5173"
+   ```
 
-### 3. Install Dependencies
-```bash
-# Install all dependencies (Root, Backend, Frontend)
-npm run install:all
-```
+3. **Install dependencies**
+   ```bash
+   npm run install:all
+   ```
 
-### 4. Database Setup
-```bash
-# Generate Prisma Client
-npm run setup
+4. **Setup database**
+   ```bash
+   npm run setup
+   cd backend
+   npx prisma migrate dev --name init
+   cd ..
+   ```
 
-# Run database migrations (from backend directory)
-cd backend
-npx prisma migrate dev --name init
-npx prisma db seed  # Optional: seed with sample data
-cd ..
-```
+5. **Run the application**
+   ```bash
+   npm start
+   ```
 
-### 5. Launch the Application
-```bash
-# Start both Backend & Frontend concurrently
-npm start
-```
-
-The application will be available at:
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:4000
-
-### Alternative: Run Separately
-```bash
-# Terminal 1 - Backend
-npm run dev:backend
-
-# Terminal 2 - Frontend
-npm run dev:frontend
-```
+6. **Access the application**
+   
+   - Frontend: `http://localhost:5173`
+   - Backend API: `http://localhost:4000`
 
 ---
 
-## 📐 Project Architecture
+## � Project Structure
 
 ```
 formforge/
@@ -210,20 +205,6 @@ formforge/
 
 ---
 
-## 🧪 Testing
-
-```bash
-# Run backend tests
-cd backend
-npm test
-
-# Run frontend linting
-cd frontend
-npm run lint
-```
-
----
-
 ## 📝 Available Scripts
 
 ### Root Directory
@@ -261,36 +242,14 @@ Contributions are welcome! Please follow these steps:
 
 ## 📄 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 👨‍💻 Author
+## 👨💻 Author
 
-**Yash Kumar Sharma**
+**Built with ❤️ and 💻 by:**
 
-[![GitHub](https://img.shields.io/badge/GitHub-yash--kumarsharma-181717?logo=github)](https://github.com/yash-kumarsharma)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?logo=linkedin)](https://linkedin.com/in/yash-kumarsharma)
-
----
-
-## 🙏 Acknowledgments
-
-- [React](https://reactjs.org/) - UI library
-- [Vite](https://vitejs.dev/) - Build tool
-- [Express](https://expressjs.com/) - Backend framework
-- [Prisma](https://www.prisma.io/) - Database ORM
-- [Lucide](https://lucide.dev/) - Icon library
-- [Vercel](https://vercel.com/) - Deployment platform
+[![Yash Kumar Sharma](https://img.shields.io/badge/GitHub-Yash%20Kumar%20Sharma-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yash-kumarsharma)
 
 ---
-
-<div align="center">
-
-**Vellum** - *Crafting beautiful forms for the modern web* ✨
-
-Made with ❤️ by [Yash Kumar Sharma](https://github.com/yash-kumarsharma)
-
-⭐ Star this repo if you find it helpful!
-
-</div>
