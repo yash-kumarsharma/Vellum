@@ -6,96 +6,20 @@ import Register from './pages/Register';
 import FormBuilder from './pages/FormBuilder';
 import PublicForm from './pages/PublicForm';
 import Responses from './pages/Responses';
+import HomePage from './pages/HomePage';
 import { Menu, Search, MoreHorizontal, Plus, FileText, Layout, BarChart, Settings, Home, ArrowRight, CheckCircle, Sun, Moon, LogOut, User, X } from 'lucide-react';
 import { formService } from './services/api';
 
 const PrivateRoute = ({ children }) => {
     const { user, loading } = useAuth();
     if (loading) return <div className="flex-center" style={{ minHeight: '100vh' }}>Loading...</div>;
-    return user ? children : <Navigate to="/landing" />;
+    return user ? children : <Navigate to="/login" />;
 };
 
-const LandingPage = () => {
-    const { isDarkMode, toggleTheme } = useAuth();
-    return (
-        <div className="fade-in" style={{ background: 'hsl(var(--v-bg))', minHeight: '100vh', color: 'hsl(var(--v-text-main))' }}>
-            <nav className="vellum-nav vellum-glass">
-                <div className="brand-text">Vellum</div>
-                <div className="flex" style={{ gap: '1.5rem', alignItems: 'center' }}>
-                    <button className="btn btn-ghost" onClick={toggleTheme} style={{ padding: '0.5rem' }}>
-                        {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-                    </button>
-                    <Link to="/login" className="btn btn-ghost">Sign in</Link>
-                    <Link to="/register" className="btn btn-primary" style={{ borderRadius: '50px' }}>Join Vellum</Link>
-                </div>
-            </nav>
-
-            <div className="container" style={{ textAlign: 'center', padding: '120px 1rem' }}>
-                <h1 style={{ fontSize: '4.5rem', marginBottom: '1.5rem', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
-                    Craft beautiful forms, <br />
-                    <span style={{ background: 'linear-gradient(to right, hsl(var(--v-primary)), #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>effortlessly.</span>
-                </h1>
-                <p style={{ fontSize: '1.25rem', color: 'hsl(var(--v-text-muted))', maxWidth: '600px', margin: '0 auto 3rem', lineHeight: 1.6 }}>
-                    Stop building generic surveys. Vellum provides a professional, minimalist studio for creators who value aesthetic and focus.
-                </p>
-                <div className="flex-center" style={{ gap: '1.5rem' }}>
-                    <Link to="/register" className="btn btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem', borderRadius: '50px' }}>
-                        Create your Vellum <ArrowRight size={20} />
-                    </Link>
-                </div>
-            </div>
-
-            <div className="container" id="features" style={{ padding: '80px 1rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem' }}>
-                    <div className="vellum-card" style={{ border: 'none', background: 'hsl(var(--v-primary) / 0.03)' }}>
-                        <div style={{ color: 'hsl(var(--v-primary))', marginBottom: '1.5rem' }}><Layout size={32} /></div>
-                        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Zen Studio</h3>
-                        <p style={{ color: 'hsl(var(--v-text-muted))', lineHeight: 1.5 }}>A distraction-free environment designed to help you craft the perfect questions.</p>
-                    </div>
-                    <div className="vellum-card" style={{ border: 'none', background: 'hsl(var(--v-primary) / 0.03)' }}>
-                        <div style={{ color: 'hsl(var(--v-primary))', marginBottom: '1.5rem' }}><BarChart size={32} /></div>
-                        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Deep Insights</h3>
-                        <p style={{ color: 'hsl(var(--v-text-muted))', lineHeight: 1.5 }}>Real-time analytics and professional Excel exports at your fingertips.</p>
-                    </div>
-                    <div className="vellum-card" style={{ border: 'none', background: 'hsl(var(--v-primary) / 0.03)' }}>
-                        <div style={{ color: 'hsl(var(--v-primary))', marginBottom: '1.5rem' }}><CheckCircle size={32} /></div>
-                        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Premium Delivery</h3>
-                        <p style={{ color: 'hsl(var(--v-text-muted))', lineHeight: 1.5 }}>High-conversion public forms that adapt beautifully to any device.</p>
-                    </div>
-                </div>
-            </div>
-
-            <footer style={{ borderTop: '1px solid hsl(var(--v-border))', padding: '5rem 0 3rem', marginTop: '4rem', background: 'hsl(var(--v-primary) / 0.02)' }}>
-                <div className="container">
-                    <div className="flex-between" style={{ alignItems: 'flex-start', marginBottom: '4rem' }}>
-                        <div>
-                            <div className="brand-text" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Vellum</div>
-                            <p style={{ color: 'hsl(var(--v-text-muted))', maxWidth: '300px', lineHeight: 1.6 }}>Crafting beautiful interfaces for the modern web. Built with precision and a focus on clarity.</p>
-                        </div>
-                        <div className="flex" style={{ gap: '4rem' }}>
-                            <div className="flex-column" style={{ gap: '1rem' }}>
-                                <div style={{ fontWeight: '600', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Product</div>
-                                <Link to="/register" className="btn btn-ghost" style={{ padding: '0', height: 'auto', fontSize: '0.875rem' }}>Templates</Link>
-                                <a href="#features" className="btn btn-ghost" style={{ padding: '0', height: 'auto', fontSize: '0.875rem' }}>Studio</a>
-                            </div>
-                            <div className="flex-column" style={{ gap: '1rem' }}>
-                                <div style={{ fontWeight: '600', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Company</div>
-                                <span style={{ fontSize: '0.875rem', color: 'hsl(var(--v-text-muted))' }}>About</span>
-                                <span style={{ fontSize: '0.875rem', color: 'hsl(var(--v-text-muted))' }}>Contact</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div style={{ borderTop: '1px solid hsl(var(--v-border))', paddingTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'hsl(var(--v-text-muted))' }}>
-                        <div>© 2026 Vellum Platform. All rights reserved.</div>
-                        <div className="flex" style={{ gap: '2rem' }}>
-                            <span>Privacy Policy</span>
-                            <span>Terms of Service</span>
-                        </div>
-                    </div>
-                </div>
-            </footer>
-        </div>
-    );
+const PublicRoute = ({ children }) => {
+    const { user, loading } = useAuth();
+    if (loading) return <div className="flex-center" style={{ minHeight: '100vh' }}>Loading...</div>;
+    return user ? <Navigate to="/dashboard" /> : children;
 };
 
 const Dashboard = () => {
@@ -436,13 +360,13 @@ function App() {
             <Router>
                 <div style={{ minHeight: '100vh' }}>
                     <Routes>
-                        <Route path="/landing" element={<LandingPage />} />
+                        <Route path="/" element={<PublicRoute><HomePage /></PublicRoute>} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
                         <Route path="/public/:id" element={<PublicForm />} />
                         <Route path="/forms/:id/responses" element={<PrivateRoute><Responses /></PrivateRoute>} />
                         <Route path="/forms/:id" element={<PrivateRoute><FormBuilder /></PrivateRoute>} />
-                        <Route path="/" element={
+                        <Route path="/dashboard" element={
                             <PrivateRoute>
                                 <>
                                     <AppHeader />

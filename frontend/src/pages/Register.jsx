@@ -20,7 +20,7 @@ const Register = () => {
             await authService.register({ name, email, password });
             navigate('/login');
         } catch (err) {
-            setError(err.response?.data?.message || 'Fine-tune your details and try again.');
+            setError(err.response?.data?.error?.message || err.response?.data?.message || 'Fine-tune your details and try again.');
         } finally {
             setLoading(false);
         }
@@ -30,7 +30,7 @@ const Register = () => {
         <div className="flex-center fade-in" style={{ minHeight: '100vh', padding: '1rem' }}>
             <div className="vellum-card" style={{ maxWidth: '440px', width: '100%', padding: '3rem' }}>
                 <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                    <div className="brand-text" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>Join Vellum</div>
+                    <Link to="/" className="brand-text" style={{ fontSize: '2.5rem', marginBottom: '0.5rem', display: 'inline-block', textDecoration: 'none' }}>Join Vellum</Link>
                     <p style={{ color: 'hsl(var(--v-text-muted))' }}>Start crafting beautiful forms today.</p>
                 </div>
 
