@@ -36,6 +36,10 @@ model Form {
   responses     Response[]
   collaborators Collaborator[]
   createdAt     DateTime @default(now())
+
+  @@index([ownerId])
+  @@index([createdAt(sort: Desc)])
+  @@index([isPublic])
 }
 
 enum QuestionType {
@@ -56,6 +60,9 @@ model Question {
   required  Boolean      @default(false)
   order     Int
   createdAt DateTime     @default(now())
+
+  @@index([formId])
+  @@index([order])
 }
 
 model Response {
@@ -64,6 +71,9 @@ model Response {
   form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
   answers   Json
   createdAt DateTime @default(now())
+
+  @@index([formId])
+  @@index([createdAt(sort: Desc)])
 }
 
 enum CollaboratorRole {
@@ -79,4 +89,7 @@ model Collaborator {
   formId    String
   form      Form             @relation(fields: [formId], references: [id], onDelete: Cascade)
   role      CollaboratorRole
+
+  @@index([userId])
+  @@index([formId])
 }
