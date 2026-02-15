@@ -5,9 +5,7 @@ import {
     BarChart3,
     Share2,
     Layout,
-    Users,
     Download,
-    Zap,
     Shield
 } from 'lucide-react';
 
@@ -37,22 +35,10 @@ const features = [
         color: '#f59e0b'
     },
     {
-        icon: Users,
-        title: 'Team Collaboration',
-        description: 'Work together with your team. Share forms, manage permissions, and collaborate in real-time.',
-        color: '#ec4899'
-    },
-    {
         icon: Download,
         title: 'Export Data',
         description: 'Download responses in Excel or CSV format for further analysis and reporting.',
         color: '#6366f1'
-    },
-    {
-        icon: Zap,
-        title: 'Lightning Fast',
-        description: 'Optimized performance ensures your forms load instantly and respond smoothly.',
-        color: '#eab308'
     },
     {
         icon: Shield,

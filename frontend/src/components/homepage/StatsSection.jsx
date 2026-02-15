@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import CountUp from 'react-countup';
 import { FileText, Users, MessageSquare, Globe } from 'lucide-react';
 
@@ -35,6 +36,7 @@ const stats = [
 ];
 
 const StatsSection = () => {
+    const navigate = useNavigate();
     const [isVisible, setIsVisible] = useState(false);
 
     return (
@@ -99,7 +101,10 @@ const StatsSection = () => {
                     className="stats-cta"
                 >
                     <h3>Join thousands of users creating amazing forms</h3>
-                    <button className="btn-primary btn-large">
+                    <button
+                        className="btn-primary btn-large"
+                        onClick={() => navigate('/register')}
+                    >
                         Start Creating for Free
                     </button>
                 </motion.div>
@@ -109,3 +114,4 @@ const StatsSection = () => {
 };
 
 export default StatsSection;
+
