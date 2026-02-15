@@ -8,6 +8,7 @@ const PublicHeader = () => {
 
     return (
         <nav
+            className="public-header"
             style={{
                 position: 'absolute',
                 top: 0,
@@ -26,7 +27,7 @@ const PublicHeader = () => {
                 Vellum
             </Link>
 
-            <div className="flex" style={{ alignItems: 'center', gap: '1rem' }}>
+            <div className="flex public-header-actions" style={{ alignItems: 'center', gap: '1rem' }}>
                 <button
                     className="btn btn-ghost"
                     onClick={toggleTheme}
@@ -43,7 +44,7 @@ const PublicHeader = () => {
 
                 <Link
                     to="/login"
-                    className="btn btn-ghost"
+                    className="btn btn-ghost public-header-signin"
                     style={{
                         background: 'hsl(var(--v-surface) / 0.6)',
                         backdropFilter: 'blur(8px)',
