@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
 import FormBuilder from './pages/FormBuilder';
 import PublicForm from './pages/PublicForm';
 import Responses from './pages/Responses';
@@ -22,199 +23,6 @@ const PublicRoute = ({ children }) => {
     return user ? <Navigate to="/dashboard" /> : children;
 };
 
-const Dashboard = () => {
-    const { user } = useAuth();
-    const navigate = useNavigate();
-    const [forms, setForms] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [deletingId, setDeletingId] = useState(null);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [toast, setToast] = useState(null);
-
-    const notify = (msg, type = 'info') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3000);
-    };
-
-    useEffect(() => {
-        const handleSearch = (e) => setSearchTerm(e.detail);
-        const handleNotify = (e) => notify(e.detail.msg, e.detail.type);
-        window.addEventListener('vellum-search', handleSearch);
-        window.addEventListener('vellum-notify', handleNotify);
-        return () => {
-            window.removeEventListener('vellum-search', handleSearch);
-            window.removeEventListener('vellum-notify', handleNotify);
-        };
-    }, []);
-
-    const templates = [
-        { id: 't1', title: 'Customer Feedback', type: 'FEEDBACK', questions: [{ label: 'How would you rate our service?', type: 'MULTIPLE_CHOICE', options: ['Excellent', 'Good', 'Average', 'Poor'] }, { label: 'Any suggestions for improvement?', type: 'TEXT' }] },
-        { id: 't2', title: 'Event Registration', type: 'EVENT', questions: [{ label: 'Full Name', type: 'TEXT', required: true }, { label: 'Email', type: 'TEXT', required: true }, { label: 'Dietary Requirements', type: 'TEXT' }] },
-        { id: 't3', title: 'Product Market Fit', type: 'RESEARCH', questions: [{ label: 'How disappointed would you be if you could no longer use Vellum?', type: 'MULTIPLE_CHOICE', options: ['Very disappointed', 'Somewhat disappointed', 'Not disappointed'] }] }
-    ];
-
-    const fetchForms = async () => {
-        try {
-            const res = await formService.list();
-            setForms(res.data);
-        } catch (err) { console.error(err); }
-        finally { setLoading(false); }
-    };
-
-    const filteredForms = forms.filter(f =>
-        f.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        f.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    useEffect(() => {
-        fetchForms();
-    }, []);
-
-    const createFromTemplate = async (template) => {
-        try {
-            setLoading(true);
-            const res = await formService.create({
-                title: template.title,
-                questions: template.questions
-            });
-            navigate(`/forms/${res.data.id}`);
-        } catch (err) {
-            console.error("Template creation failed:", err);
-            setLoading(false);
-        }
-    };
-
-    const createNewForm = async () => {
-        try {
-            const res = await formService.create({ title: 'Untitled Vellum' });
-            navigate(`/forms/${res.data.id}`);
-        } catch (err) {
-            console.error("Failed to create new form:", err);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (!deletingId) return;
-        try {
-            await formService.delete(deletingId);
-            fetchForms();
-            setShowDeleteModal(false);
-            setDeletingId(null);
-        } catch (err) {
-            notify('Vellum: Protection script blocked the deletion.', 'error');
-        }
-    };
-
-    if (loading && forms.length === 0) {
-        return (
-            <div className="container fade-in">
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem', opacity: 0.5 }}>
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="vellum-card" style={{ height: '240px', background: 'hsl(var(--v-primary) / 0.05)', borderStyle: 'dashed' }}></div>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="container fade-in" style={{ paddingBottom: '5rem' }}>
-            <div className="flex-between" style={{ marginBottom: '3rem' }}>
-                <div>
-                    <h1 style={{ marginBottom: '0.5rem', fontSize: '2.5rem' }}>Welcome, {user?.name.split(' ')[0]}</h1>
-                    <p style={{ color: 'hsl(var(--v-text-muted))', fontSize: '1.1rem' }}>You have {forms.length} active Vellums.</p>
-                </div>
-                <button className="btn btn-primary" onClick={createNewForm} style={{ padding: '1rem 2rem', borderRadius: '50px' }}>
-                    <Plus size={20} /> Create New Vellum
-                </button>
-            </div>
-
-            <section style={{ marginBottom: '4rem' }}>
-                <h3 style={{ fontSize: '0.925rem', color: 'hsl(var(--v-text-muted))', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1.5rem' }}>Quick Templates</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.5rem' }}>
-                    {templates.map(t => (
-                        <div key={t.id} className="vellum-card vellum-glass" style={{ padding: '1.5rem', cursor: 'pointer', transition: 'transform 0.2s', border: '1px solid hsl(var(--v-primary) / 0.1)' }} onClick={() => createFromTemplate(t)}>
-                            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'hsl(var(--v-primary) / 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', color: 'hsl(var(--v-primary))' }}>
-                                <FileText size={20} />
-                            </div>
-                            <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>{t.title}</div>
-                            <div style={{ fontSize: '0.825rem', color: 'hsl(var(--v-text-muted))' }}>{t.questions.length} sections</div>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            <h3 style={{ fontSize: '0.925rem', color: 'hsl(var(--v-text-muted))', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1.5rem' }}>
-                {searchTerm ? `Search Results for "${searchTerm}"` : 'Your Vellums'}
-            </h3>
-            {filteredForms.length === 0 ? (
-                <div className="vellum-card flex-center flex-column" style={{ padding: '6rem 2rem', textAlign: 'center', background: 'transparent', borderStyle: 'dashed', borderColor: 'hsl(var(--v-border))' }}>
-                    <Layout size={48} style={{ marginBottom: '1.5rem', opacity: 0.2 }} />
-                    <h3>{searchTerm ? 'No Vellums match your search.' : 'Your studio is empty.'}</h3>
-                    <p style={{ color: 'hsl(var(--v-text-muted))', marginTop: '0.5rem', marginBottom: '2rem' }}>
-                        {searchTerm ? 'Try a different keyword or create a new Vellum.' : 'Start your next masterpiece by creating your first Vellum.'}
-                    </p>
-                    <button className="btn btn-primary" onClick={createNewForm}>Get Started</button>
-                </div>
-            ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
-                    {filteredForms.map((f) => (
-                        <Link to={`/forms/${f.id}`} key={f.id} className="vellum-card fade-in" style={{ padding: '0', overflow: 'hidden', display: 'block' }}>
-                            <div style={{ height: '140px', background: `linear-gradient(135deg, hsl(var(--v-primary) / 0.1), hsl(var(--v-primary) / 0.05))`, position: 'relative' }}>
-                                <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'hsl(var(--v-surface))', padding: '0.25rem 0.75rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: '600', color: f.isPublic ? 'hsl(var(--v-primary))' : 'hsl(var(--v-text-muted))', border: '1px solid hsl(var(--v-border))' }}>
-                                    {f.isPublic ? 'Live' : 'Private'}
-                                </div>
-                            </div>
-                            <div style={{ padding: '1.5rem' }}>
-                                <h3 style={{ marginBottom: '0.5rem', fontSize: '1.1rem', fontWeight: '600' }}>{f.title}</h3>
-                                <div className="flex-between" style={{ marginTop: '1.5rem' }}>
-                                    <div className="flex" style={{ gap: '0.5rem', color: 'hsl(var(--v-text-muted))', fontSize: '0.875rem' }}>
-                                        <BarChart size={16} /> {f._count?.responses || 0} responses
-                                    </div>
-                                    <div
-                                        className="btn btn-ghost"
-                                        style={{ padding: '0.5rem', color: '#ef4444', position: 'relative', zIndex: 10 }}
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            setDeletingId(f.id);
-                                            setShowDeleteModal(true);
-                                        }}
-                                        title="Delete Vellum"
-                                    >
-                                        <LogOut size={16} style={{ transform: 'rotate(180deg)' }} />
-                                    </div>
-                                </div>
-                            </div>
-                        </Link>
-                    ))}
-                </div>
-            )}
-
-            {/* Delete Modal */}
-            {showDeleteModal && (
-                <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <h2 style={{ marginBottom: '1rem', fontSize: '1.5rem' }}>Delete Vellum?</h2>
-                        <p style={{ marginBottom: '2rem' }}>This action is permanent and will securely erase all questions and collected responses from the Vellum vault.</p>
-                        <div className="flex" style={{ gap: '1rem', justifyContent: 'flex-end' }}>
-                            <button className="btn btn-ghost" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                            <button className="btn btn-primary" style={{ background: '#ef4444' }} onClick={handleDelete}>Delete Permanently</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {toast && (
-                <div className="vellum-toast fade-in" style={{ borderColor: toast.type === 'error' ? '#ef4444' : 'hsl(var(--v-primary))' }}>
-                    {toast.type === 'error' ? <LogOut size={18} style={{ transform: 'rotate(180deg)', color: '#ef4444' }} /> : <CheckCircle size={18} color="hsl(var(--v-primary))" />}
-                    {toast.msg}
-                </div>
-            )}
-        </div>
-    );
-};
 
 const AppHeader = () => {
     const { user, logout, isDarkMode, toggleTheme } = useAuth();
@@ -223,7 +31,7 @@ const AppHeader = () => {
 
     return (
         <>
-            <nav className="vellum-nav vellum-glass" style={{ marginBottom: '2rem' }}>
+            <nav className="vellum-nav vellum-glass">
                 <div className="flex" style={{ alignItems: 'center', gap: '1.5rem' }}>
                     <Link to="/" className="brand-text" style={{ fontSize: '1.5rem', textDecoration: 'none' }}>Vellum</Link>
                     <div className="flex" style={{ borderLeft: '1px solid hsl(var(--v-border))', paddingLeft: '1.5rem', marginLeft: '0.5rem', gap: '1rem' }}>
