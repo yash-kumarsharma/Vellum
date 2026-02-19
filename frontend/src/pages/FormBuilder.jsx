@@ -1,271 +1,323 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { formService } from '../services/api';
-import { Plus, Trash2, Settings, Eye, Send, MoreVertical, Copy, X, ArrowLeft, Share2, Globe, Lock, CheckSquare, ChevronDown, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react';
+import { Save, Eye, ArrowLeft, Plus, Type, List, CheckSquare, Calendar, ChevronDown, CheckCircle, Globe, Lock, Share2, Copy, BarChart2 } from 'lucide-react';
+import QuestionCard from '../components/builder/QuestionCard';
+import { motion } from 'framer-motion';
+
+const QUESTION_TYPES = [
+    { type: 'TEXT', label: 'Short Answer', icon: <Type size={18} /> },
+    { type: 'MULTIPLE_CHOICE', label: 'Multiple Choice', icon: <List size={18} /> },
+    { type: 'CHECKBOX', label: 'Checkboxes', icon: <CheckSquare size={18} /> },
+    { type: 'DROPDOWN', label: 'Dropdown', icon: <ChevronDown size={18} /> },
+    { type: 'DATE', label: 'Date', icon: <Calendar size={18} /> }
+];
 
 const FormBuilder = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [form, setForm] = useState({ title: 'Untitled form', description: '', questions: [], isPublic: true });
-    const [activeQuestion, setActiveQuestion] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [showSettings, setShowSettings] = useState(false);
-    const [showShare, setShowShare] = useState(false);
+    const [form, setForm] = useState(null);
+    const [questions, setQuestions] = useState([]);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [isPublic, setIsPublic] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
     const [toast, setToast] = useState(null);
 
-    const notify = (msg, type = 'info') => {
+    const showToast = (msg, type = 'success') => {
         setToast({ msg, type });
         setTimeout(() => setToast(null), 3000);
     };
 
     useEffect(() => {
-        if (id !== 'new') {
-            const fetchForm = async () => {
-                try {
-                    const res = await formService.getOne(id);
-                    setForm(res.data);
-                    setLoading(false);
-                } catch (err) {
-                    console.error(err);
-                    setLoading(false);
-                    notify('Vellum: Access to this studio is restricted or form not found.', 'error');
-                    setTimeout(() => navigate('/'), 2000);
-                }
-            };
-            fetchForm();
-        } else { setLoading(false); }
-    }, [id]);
-
-    const saveForm = async () => {
-        setSaving(true);
-        try {
-            if (id === 'new') {
-                const res = await formService.create(form);
-                navigate(`/forms/${res.data.id}`);
-            } else {
-                await formService.update(id, form);
+        const fetchForm = async () => {
+            try {
+                const res = await formService.getOne(id);
+                setForm(res.data);
+                setTitle(res.data.title);
+                setDescription(res.data.description || '');
+                setIsPublic(res.data.isPublic);
+                setQuestions(res.data.questions || []);
+            } catch (err) {
+                console.error(err);
+                navigate('/dashboard');
+            } finally {
+                setLoading(false);
             }
-            notify('Vellum: Studio sychronized successfully!');
+        };
+        fetchForm();
+    }, [id, navigate]);
+
+    const handleSave = async () => {
+        try {
+            setSaving(true);
+            const updatedForm = {
+                title,
+                description,
+                isPublic,
+                questions: questions.map((q, index) => ({
+                    ...q,
+                    order: index // Ensure order is preserved
+                }))
+            };
+            const res = await formService.update(id, updatedForm);
+            setForm(res.data);
+            showToast('Form saved successfully');
         } catch (err) {
-            console.error(err);
-            notify('Failed to synchronize studio.', 'error');
-        } finally { setSaving(false); }
+            console.error("Failed to save", err);
+            showToast('Failed to save', 'error');
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const addQuestion = () => {
-        const newQuestion = { id: Date.now().toString(), type: 'TEXT', label: 'New Question', options: ['Option 1'], required: false };
-        setForm({ ...form, questions: [...form.questions, newQuestion] });
-        setActiveQuestion(newQuestion.id);
+    const addQuestion = (type) => {
+        const newQuestion = {
+            id: `temp-${Date.now()}`, // Temporary ID
+            type,
+            label: '',
+            required: false,
+            options: ['Option 1']
+        };
+        setQuestions([...questions, newQuestion]);
+        // Scroll to bottom logic could go here
     };
 
-    const updateQuestion = (qId, updates) => {
-        setForm({
-            ...form,
-            questions: form.questions.map(q => q.id === qId ? { ...q, ...updates } : q)
-        });
+    const updateQuestion = (qId, updatedData) => {
+        setQuestions(questions.map(q => q.id === qId ? updatedData : q));
     };
 
-    const deleteQuestion = (qId) => setForm({ ...form, questions: form.questions.filter((q) => q.id !== qId) });
-
-    const addOption = (qId) => {
-        const q = form.questions.find(item => item.id === qId);
-        const newOptions = [...(q.options || []), `Option ${(q.options?.length || 0) + 1}`];
-        updateQuestion(qId, { options: newOptions });
+    const deleteQuestion = (qId) => {
+        setQuestions(questions.filter(q => q.id !== qId));
     };
 
-    const updateOption = (qId, idx, val) => {
-        const q = form.questions.find(item => item.id === qId);
-        const newOptions = [...q.options];
-        newOptions[idx] = val;
-        updateQuestion(qId, { options: newOptions });
+    const duplicateQuestion = (question) => {
+        const newQuestion = {
+            ...question,
+            id: `temp-${Date.now()}`,
+            label: `${question.label} (Copy)`
+        };
+        setQuestions([...questions, newQuestion]);
     };
 
-    const removeOption = (qId, idx) => {
-        const q = form.questions.find(item => item.id === qId);
-        const newOptions = q.options.filter((_, i) => i !== idx);
-        updateQuestion(qId, { options: newOptions });
+    const handleShare = () => {
+        setShowShareModal(true);
     };
 
     const copyLink = () => {
-        const link = `${window.location.origin}/public/${id}`;
-        navigator.clipboard.writeText(link);
-        notify('Vellum Link copied to clipboard!');
+        const url = `${window.location.origin}/public/${id}`;
+        navigator.clipboard.writeText(url);
+        showToast('Link copied to clipboard!');
+        setShowShareModal(false);
     };
 
-    if (loading) return <div className="flex-center" style={{ minHeight: '100vh' }}>Preparing the studio...</div>;
+    if (loading) return (
+        <div className="flex-center" style={{ minHeight: '100vh', background: 'hsl(var(--v-bg))', color: 'hsl(var(--v-text-muted))' }}>
+            <div className="spinner" style={{ width: 40, height: 40, border: '3px solid hsl(var(--v-border))', borderTopColor: 'hsl(var(--v-primary))', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+        </div>
+    );
 
     return (
-        <div style={{ minHeight: '100vh', paddingBottom: '3rem' }}>
-            <nav className="vellum-nav vellum-glass">
-                <div className="flex" style={{ alignItems: 'center', gap: '1.5rem' }}>
-                    <Link to="/" className="btn btn-ghost"><ArrowLeft size={20} /></Link>
-                    <div className="brand-text" style={{ fontSize: '1.25rem' }}>Vellum Studio</div>
+        <div className="flex-column" style={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
+            {/* Background Orbs */}
+            <div className="dashboard-background">
+                <div className="dashboard-orb d-orb-1"></div>
+                <div className="dashboard-orb d-orb-2"></div>
+            </div>
+            {/* Builder Header */}
+            <div className="vellum-glass" style={{
+                height: '64px',
+                borderBottom: '1px solid hsl(var(--v-border))',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0 1.5rem',
+                position: 'relative',
+                zIndex: 50
+            }}>
+                <div className="flex" style={{ alignItems: 'center', gap: '1rem' }}>
+                    <button className="btn btn-ghost btn-icon" onClick={() => navigate('/dashboard')}>
+                        <ArrowLeft size={20} />
+                    </button>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+                        {title || 'Untitled Form'}
+                    </span>
                 </div>
-                <div className="flex" style={{ gap: '1rem' }}>
-                    <Link to={`/forms/${id}/responses`} className="btn btn-ghost" style={{ fontSize: '0.875rem' }}>Responses</Link>
-                    <button className="btn btn-ghost" onClick={() => window.open(`/public/${id}`, '_blank')} title="Preview"><Eye size={20} /></button>
-                    <button className="btn btn-ghost" onClick={() => setShowShare(true)} title="Share"><Share2 size={20} /></button>
-                    <button className="btn btn-primary" onClick={saveForm} disabled={saving}>
-                        {saving ? 'Sychronizing...' : 'Save Changes'}
+
+                <div className="flex" style={{ gap: '0.75rem', alignItems: 'center' }}>
+                    <div
+                        className="flex"
+                        style={{ alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: isPublic ? 'hsl(142 76% 36%)' : 'hsl(var(--v-text-muted))', fontWeight: 500, marginRight: '1rem', cursor: 'pointer' }}
+                        onClick={() => setIsPublic(!isPublic)}
+                        title="Toggle Public/Private"
+                    >
+                        {isPublic ? <Globe size={16} /> : <Lock size={16} />}
+                        {isPublic ? 'Public' : 'Private'}
+                    </div>
+                    <button
+                        className="btn btn-ghost"
+                        onClick={() => navigate(`/forms/${id}/responses`)}
+                        title="View Responses"
+                    >
+                        <BarChart2 size={18} style={{ marginRight: '0.5rem' }} /> Responses
+                    </button>
+                    <button
+                        className="btn btn-outline"
+                        onClick={() => window.open(`/public/${id}`, '_blank')}
+                    >
+                        <Eye size={18} style={{ marginRight: '0.5rem' }} /> Preview
+                    </button>
+                    <button
+                        className="btn btn-primary"
+                        onClick={handleShare}
+                        title="Share Form"
+                        style={{ background: 'linear-gradient(135deg, #8b5cf6, #d946ef)', border: 'none' }}
+                    >
+                        <Share2 size={18} style={{ marginRight: '0.5rem' }} /> Share
+                    </button>
+                    <button
+                        className="btn btn-outline"
+                        onClick={handleSave}
+                        disabled={saving}
+                    >
+                        {saving ? 'Saving...' : <><Save size={18} style={{ marginRight: '0.5rem' }} /> Save</>}
                     </button>
                 </div>
-            </nav>
+            </div>
 
-            <div className="container" style={{ maxWidth: '720px', marginTop: '3rem' }}>
-                {/* Form Header Section */}
-                <div className="vellum-card" style={{ borderTop: '8px solid hsl(var(--v-primary))', padding: '0' }}>
-                    <div style={{ padding: '2.5rem' }}>
-                        <input
-                            className="vellum-input"
-                            style={{ fontSize: '2rem', fontWeight: '700', border: 'none', padding: '0', marginBottom: '1rem', background: 'transparent' }}
-                            value={form.title}
-                            onChange={(e) => setForm({ ...form, title: e.target.value })}
-                            placeholder="Form Title"
-                        />
-                        <textarea
-                            className="vellum-input"
-                            style={{ border: 'none', padding: '0', background: 'transparent', resize: 'none', minHeight: '60px', color: 'hsl(var(--v-text-muted))' }}
-                            placeholder="Add a refined description for your respondents..."
-                            value={form.description || ''}
-                            onChange={(e) => setForm({ ...form, description: e.target.value })}
-                        />
+            {/* Builder Content */}
+            <div className="flex" style={{ flex: 1, overflow: 'hidden' }}>
+                {/* Tools Sidebar (Left) */}
+                <div className="vellum-glass" style={{
+                    width: '260px',
+                    borderRight: '1px solid hsl(var(--v-border))',
+                    padding: '1.5rem',
+                    overflowY: 'auto',
+                    zIndex: 40
+                }}>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'hsl(var(--v-text-muted))', textTransform: 'uppercase', marginBottom: '1rem' }}>
+                        Add Question
+                    </h3>
+                    <div className="flex-column" style={{ gap: '0.75rem' }}>
+                        {QUESTION_TYPES.map(t => (
+                            <button
+                                key={t.type}
+                                className="btn btn-ghost"
+                                onClick={() => addQuestion(t.type)}
+                                style={{ justifyContent: 'flex-start', background: 'hsl(var(--v-surface))', border: '1px solid hsl(var(--v-border))' }}
+                            >
+                                <span style={{ marginRight: '0.75rem', opacity: 0.7 }}>{t.icon}</span>
+                                {t.label}
+                                <Plus size={14} style={{ marginLeft: 'auto', opacity: 0.5 }} />
+                            </button>
+                        ))}
                     </div>
                 </div>
 
-                {form.questions.map((q) => (
-                    <div
-                        key={q.id}
-                        className="vellum-card fade-in"
-                        style={{
-                            borderLeft: activeQuestion === q.id ? '4px solid hsl(var(--v-primary))' : '1px solid hsl(var(--v-border))',
-                            padding: activeQuestion === q.id ? '2.5rem' : '1.5rem',
-                            background: activeQuestion === q.id ? 'hsl(var(--v-surface-raised))' : 'hsl(var(--v-surface) / 0.5)'
-                        }}
-                        onClick={() => setActiveQuestion(q.id)}
-                    >
-                        {activeQuestion === q.id ? (
-                            <div className="flex-column" style={{ gap: '2rem' }}>
-                                <div className="flex" style={{ gap: '1.5rem' }}>
-                                    <input
-                                        className="vellum-input"
-                                        style={{ flex: 2, background: 'transparent' }}
-                                        value={q.label}
-                                        onChange={(e) => updateQuestion(q.id, { label: e.target.value })}
-                                        placeholder="Enter your question"
-                                    />
-                                    <select
-                                        className="vellum-input"
-                                        style={{ flex: 1, background: 'hsl(var(--v-surface))' }}
-                                        value={q.type}
-                                        onChange={(e) => updateQuestion(q.id, { type: e.target.value })}
-                                    >
-                                        <option value="TEXT">Short Answer</option>
-                                        <option value="MULTIPLE_CHOICE">Multiple Choice</option>
-                                        <option value="CHECKBOX">Checkboxes</option>
-                                        <option value="DROPDOWN">Dropdown</option>
-                                    </select>
-                                </div>
+                {/* Canvas (Center) */}
+                <div style={{ flex: 1, padding: '3rem', overflowY: 'auto', position: 'relative', zIndex: 10 }}>
+                    <div style={{ maxWidth: '700px', margin: '0 auto' }}>
 
-                                {(q.type === 'MULTIPLE_CHOICE' || q.type === 'CHECKBOX' || q.type === 'DROPDOWN') && (
-                                    <div className="flex-column" style={{ gap: '1rem', paddingLeft: '1rem' }}>
-                                        {q.options.map((opt, idx) => (
-                                            <div key={idx} className="flex" style={{ alignItems: 'center', gap: '1rem' }}>
-                                                <div style={{ width: '12px', height: '12px', border: '2px solid hsl(var(--v-border))', borderRadius: q.type === 'CHECKBOX' ? '2px' : '50%' }}></div>
-                                                <input
-                                                    className="vellum-input"
-                                                    style={{ border: 'none', borderBottom: '1px solid hsl(var(--v-border))', borderRadius: '0', padding: '0.5rem 0', background: 'transparent' }}
-                                                    value={opt}
-                                                    onChange={(e) => updateOption(q.id, idx, e.target.value)}
-                                                />
-                                                <button className="btn btn-ghost" style={{ padding: '0.5rem' }} onClick={() => removeOption(q.id, idx)}><X size={16} /></button>
-                                            </div>
-                                        ))}
-                                        <button className="btn btn-ghost" style={{ justifyContent: 'flex-start', fontSize: '0.875rem', color: 'hsl(var(--v-primary))' }} onClick={() => addOption(q.id)}>+ Add option</button>
-                                    </div>
-                                )}
+                        {/* Title & Description Card */}
+                        <div className="vellum-card-premium" style={{
+                            padding: '2rem',
+                            marginBottom: '2rem',
+                            borderTop: '4px solid hsl(var(--v-primary))'
+                        }}>
+                            <input
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="Form Title"
+                                style={{
+                                    width: '100%',
+                                    fontSize: '2rem',
+                                    fontWeight: 700,
+                                    border: 'none',
+                                    background: 'transparent',
+                                    outline: 'none',
+                                    marginBottom: '1rem',
+                                    color: 'hsl(var(--v-text-main))'
+                                }}
+                            />
+                            <textarea
+                                value={description}
+                                onChange={(e) => {
+                                    setDescription(e.target.value);
+                                    e.target.style.height = 'auto';
+                                    e.target.style.height = e.target.scrollHeight + 'px';
+                                }}
+                                placeholder="Form Description"
+                                style={{
+                                    width: '100%',
+                                    fontSize: '1rem',
+                                    border: 'none',
+                                    background: 'transparent',
+                                    outline: 'none',
+                                    resize: 'none',
+                                    minHeight: '40px',
+                                    color: 'hsl(var(--v-text-muted))',
+                                    fontFamily: 'inherit'
+                                }}
+                            />
+                        </div>
 
-                                <div className="flex-between" style={{ borderTop: '1px solid hsl(var(--v-border))', paddingTop: '1.5rem' }}>
-                                    <div className="flex" style={{ gap: '1.5rem' }}>
-                                        <button className="btn btn-ghost" onClick={(e) => { e.stopPropagation(); deleteQuestion(q.id) }}><Trash2 size={20} /></button>
-                                    </div>
-                                    <div className="flex" style={{ alignItems: 'center', gap: '1rem' }}>
-                                        <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>Required</span>
-                                        <input
-                                            type="checkbox"
-                                            style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'hsl(var(--v-primary))' }}
-                                            checked={q.required}
-                                            onChange={(e) => updateQuestion(q.id, { required: e.target.checked })}
-                                        />
-                                    </div>
-                                </div>
+                        {questions.length === 0 ? (
+                            <div className="empty-state" style={{ padding: '4rem', textAlign: 'center', border: '2px dashed hsl(var(--v-border))', borderRadius: 'var(--radius-lg)' }}>
+                                <div style={{ marginBottom: '1rem', color: 'hsl(var(--v-text-muted))' }}>No questions yet</div>
+                                <p>Click a question type from the sidebar to start building.</p>
                             </div>
                         ) : (
-                            <div>
-                                <div style={{ fontWeight: '600', marginBottom: '0.75rem', fontSize: '1.1rem' }}>{q.label} {q.required && <span style={{ color: 'hsl(var(--v-primary))' }}>*</span>}</div>
-                                <div style={{ color: 'hsl(var(--v-text-muted))', fontSize: '0.875rem', opacity: 0.6 }}>
-                                    {q.type === 'TEXT' ? 'Short answer text' : `${q.options.length} options`}
-                                </div>
-                            </div>
+                            questions.map((q, i) => (
+                                <QuestionCard
+                                    key={q.id}
+                                    index={i}
+                                    question={q}
+                                    onUpdate={updateQuestion}
+                                    onDelete={deleteQuestion}
+                                    onDuplicate={duplicateQuestion}
+                                />
+                            ))
                         )}
+                        <div style={{ height: '100px' }}></div>
                     </div>
-                ))}
-
-                <div className="flex-center" style={{ marginTop: '2rem' }}>
-                    <button className="btn btn-primary" onClick={addQuestion} style={{ borderRadius: '50px', padding: '1rem 2rem' }}>
-                        <Plus size={20} /> Add Question
-                    </button>
                 </div>
             </div>
 
-            {/* Floating Actions Bar */}
-            <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <button className="btn btn-primary" style={{ width: '60px', height: '60px', borderRadius: '50%', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }} onClick={() => setShowSettings(true)}>
-                    <Settings size={24} />
-                </button>
-            </div>
-
-            {/* Modals */}
-            {showSettings && (
-                <div className="flex-center" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)', zIndex: 2000 }} onClick={() => setShowSettings(false)}>
-                    <div className="vellum-card fade-in" style={{ width: '400px', margin: 0, background: 'hsl(var(--v-surface-raised))' }} onClick={e => e.stopPropagation()}>
-                        <h2 style={{ marginBottom: '1.5rem' }}>Preferences</h2>
-                        <div className="flex-column" style={{ gap: '1.5rem' }}>
-                            <div className="flex-between">
-                                <div className="flex" style={{ gap: '1rem' }}>
-                                    {form.isPublic ? <Globe size={20} color="hsl(var(--v-primary))" /> : <Lock size={20} />}
-                                    <div>
-                                        <div style={{ fontWeight: '600' }}>Public Access</div>
-                                        <div style={{ fontSize: '0.75rem', color: 'hsl(var(--v-text-muted))' }}>Allow anyone with the link to response</div>
-                                    </div>
-                                </div>
-                                <input type="checkbox" checked={form.isPublic} onChange={e => setForm({ ...form, isPublic: e.target.checked })} style={{ accentColor: 'hsl(var(--v-primary))' }} />
-                            </div>
-                            <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => { saveForm(); setShowSettings(false); }}>Save Preferences</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showShare && (
-                <div className="flex-center" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)', zIndex: 2000 }} onClick={() => setShowShare(false)}>
-                    <div className="vellum-card fade-in" style={{ width: '500px', margin: 0, background: 'hsl(var(--v-surface-raised))' }} onClick={e => e.stopPropagation()}>
-                        <div className="flex-between" style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ fontSize: '1.5rem' }}>Share Vellum</h2>
-                            <button className="btn btn-ghost" onClick={() => setShowShare(false)}><X size={20} /></button>
-                        </div>
-                        <div style={{ backgroundColor: 'hsl(var(--v-bg))', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--v-border))', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                            <code style={{ flex: 1, fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis', color: 'hsl(var(--v-text-main))' }}>{window.location.origin}/public/{id}</code>
-                            <button className="btn btn-primary" onClick={copyLink}><Copy size={16} /> Copy</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
+            {/* Toast */}
             {toast && (
-                <div className="vellum-toast fade-in" style={{ borderColor: toast.type === 'error' ? '#ef4444' : 'hsl(var(--v-primary))' }}>
-                    {toast.type === 'error' ? <AlertCircle size={18} color="#ef4444" /> : <CheckCircle size={18} color="hsl(var(--v-primary))" />}
+                <div className="vellum-toast fade-in" style={{ borderColor: toast.type === 'error' ? '#ef4444' : 'hsl(var(--v-primary))', bottom: '2rem' }}>
+                    {toast.type === 'error' ? <X size={18} /> : <CheckCircle size={18} color="hsl(var(--v-primary))" />}
                     {toast.msg}
+                </div>
+            )}
+            {/* Share Modal */}
+            {showShareModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="vellum-card-premium" style={{ width: '100%', maxWidth: '500px', padding: '2rem' }}>
+                        <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Share Form</h3>
+                            <button className="btn btn-ghost btn-icon" onClick={() => setShowShareModal(false)}>
+                                <span style={{ fontSize: '1.5rem' }}>&times;</span>
+                            </button>
+                        </div>
+                        <p style={{ marginBottom: '1rem', color: 'hsl(var(--v-text-muted))' }}>
+                            Share this link with others to start collecting responses.
+                        </p>
+                        <div className="flex" style={{ gap: '0.5rem' }}>
+                            <input
+                                type="text"
+                                readOnly
+                                value={`${window.location.origin}/public/${id}`}
+                                className="vellum-input"
+                                style={{ flex: 1, background: 'hsl(var(--v-bg))' }}
+                            />
+                            <button className="btn btn-primary" onClick={copyLink}>
+                                <Copy size={18} style={{ marginRight: '0.5rem' }} /> Copy
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

@@ -21,16 +21,52 @@ const createForm = async (userId, data) => {
   });
 };
 
-const getUserForms = async (userId) => {
-  return prisma.form.findMany({
-    where: { ownerId: userId },
-    include: {
-      _count: {
-        select: { responses: true }
-      }
-    },
-    orderBy: { createdAt: 'desc' }
-  });
+const getUserForms = async (userId, { page = 1, limit = 10, search, sort = 'newest' }) => {
+  const skip = (page - 1) * limit;
+  const take = parseInt(limit);
+
+  // Sorting logic
+  let orderBy = { createdAt: 'desc' };
+  if (sort === 'oldest') orderBy = { createdAt: 'asc' };
+  if (sort === 'a-z') orderBy = { title: 'asc' };
+  if (sort === 'z-a') orderBy = { title: 'desc' };
+
+  // Filtering logic
+  const where = {
+    ownerId: userId,
+    deletedAt: null, // Only fetch non-deleted forms
+    ...(search && {
+      OR: [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ]
+    })
+  };
+
+  const [forms, total] = await prisma.$transaction([
+    prisma.form.findMany({
+      where,
+      include: {
+        _count: {
+          select: { responses: true }
+        }
+      },
+      orderBy,
+      skip,
+      take
+    }),
+    prisma.form.count({ where })
+  ]);
+
+  return {
+    forms,
+    pagination: {
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(total / limit)
+    }
+  };
 };
 
 const deleteForm = async (id, userId) => {
@@ -40,7 +76,11 @@ const deleteForm = async (id, userId) => {
     throw new Error("Form not found or unauthorized");
   }
 
-  return prisma.form.delete({ where: { id } });
+  // Soft delete
+  return prisma.form.update({
+    where: { id },
+    data: { deletedAt: new Date() }
+  });
 };
 
 const getPublicForm = async (id) => {

@@ -1,153 +1,214 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { formService, responseService } from '../services/api';
-import { Check, ChevronRight } from 'lucide-react';
+import PublicHeader from '../components/PublicHeader';
+import { Calendar, ChevronDown, CheckSquare, Circle, Type } from 'lucide-react';
 
 const PublicForm = () => {
     const { id } = useParams();
-    const [form, setForm] = useState(null);
-    const [answers, setAnswers] = useState({});
-    const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [form, setForm] = useState(null);
+    const [error, setError] = useState(null);
+
+    // Form response state
+    const [answers, setAnswers] = useState({});
+    const [submitting, setSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSubmitting(true);
+        try {
+            await responseService.submit(id, { answers });
+            setSubmitted(true);
+        } catch (err) {
+            console.error(err);
+            setError("Failed to submit response. Please try again.");
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     useEffect(() => {
         const fetchForm = async () => {
             try {
                 const res = await formService.getById(id);
                 setForm(res.data);
-            } catch (err) { console.error(err); }
-            finally { setLoading(false); }
+            } catch (err) {
+                console.error(err);
+                setError("Form not found or unavailable.");
+            } finally {
+                setLoading(false);
+            }
         };
         fetchForm();
     }, [id]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await responseService.submit(id, { answers });
-            setSubmitted(true);
-        } catch (err) {
-            alert('Vellum: Failed to record response.');
-        }
+    const handleAnswerChange = (qId, value) => {
+        setAnswers({ ...answers, [qId]: value });
     };
 
-    const handleCheckboxChange = (qId, option, checked) => {
-        const currentAnswers = answers[qId] || [];
-        if (checked) {
-            setAnswers({ ...answers, [qId]: [...currentAnswers, option] });
-        } else {
-            setAnswers({ ...answers, [qId]: currentAnswers.filter(o => o !== option) });
-        }
-    };
+    if (loading) return (
+        <div className="flex-center" style={{ minHeight: '100vh', background: 'hsl(var(--v-bg))' }}>
+            <div className="spinner" style={{ width: 40, height: 40, border: '3px solid hsl(var(--v-primary))', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+    );
+    if (error) return <div className="flex-center" style={{ minHeight: '100vh' }}>{error}</div>;
 
-    if (loading) return <div className="flex-center" style={{ minHeight: '100vh' }}>Opening Vellum...</div>;
-    if (!form) return <div className="flex-center" style={{ minHeight: '100vh' }}>Form not found.</div>;
-    if (!form.isPublic) return <div className="flex-center" style={{ minHeight: '100vh' }}>This Vellum is private.</div>;
-
-    if (submitted) {
+    const renderQuestion = (q, index) => {
         return (
-            <div className="container flex-center flex-column" style={{ minHeight: '90vh', textAlign: 'center' }}>
-                <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'hsl(var(--v-primary) / 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem' }}>
-                    <Check size={40} color="hsl(var(--v-primary))" />
-                </div>
-                <h1 style={{ marginBottom: '1rem' }}>Response Recorded</h1>
-                <p style={{ color: 'hsl(var(--v-text-muted))', maxWidth: '400px' }}>Thank you for your time. Your answers have been securely synchronized with Vellum.</p>
-                <button className="btn btn-ghost" style={{ marginTop: '2rem' }} onClick={() => window.location.reload()}>Submit another</button>
+            <div key={q.id} className="vellum-question-compact" style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.5rem', color: 'hsl(var(--v-text-main))' }}>
+                    {q.label}
+                    {q.required && <span style={{ color: '#ef4444', marginLeft: '0.25rem' }}>*</span>}
+                </label>
+
+                {q.type === 'TEXT' && (
+                    <input
+                        type="text"
+                        className="vellum-input"
+                        placeholder="Your answer"
+                        value={answers[q.id] || ''}
+                        onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                        required={q.required}
+                        style={{ width: '100%', padding: '0.6rem', fontSize: '0.95rem', background: 'hsl(var(--v-bg))' }}
+                    />
+                )}
+
+                {q.type === 'MULTIPLE_CHOICE' && (
+                    <div className="flex-column" style={{ gap: '0.75rem' }}>
+                        {q.options?.map((opt, i) => (
+                            <label key={i} className="flex" style={{ alignItems: 'center', gap: '0.75rem', cursor: 'pointer', padding: '0.5rem', borderRadius: '8px', border: '1px solid hsl(var(--v-border))', transition: 'all 0.2s' }}>
+                                <input
+                                    type="radio"
+                                    name={q.id}
+                                    value={opt}
+                                    checked={answers[q.id] === opt}
+                                    onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                                    required={q.required}
+                                    style={{ accentColor: 'hsl(var(--v-primary))', width: 18, height: 18 }}
+                                />
+                                <span>{opt}</span>
+                            </label>
+                        ))}
+                    </div>
+                )}
+
+                {q.type === 'CHECKBOX' && (
+                    <div className="flex-column" style={{ gap: '0.75rem' }}>
+                        {q.options?.map((opt, i) => (
+                            <label key={i} className="flex" style={{ alignItems: 'center', gap: '0.75rem', cursor: 'pointer', padding: '0.5rem', borderRadius: '8px', border: '1px solid hsl(var(--v-border))', transition: 'all 0.2s' }}>
+                                <input
+                                    type="checkbox"
+                                    name={q.id}
+                                    value={opt}
+                                    checked={answers[q.id]?.includes(opt) || false}
+                                    onChange={(e) => {
+                                        const current = answers[q.id] || [];
+                                        if (e.target.checked) {
+                                            handleAnswerChange(q.id, [...current, opt]);
+                                        } else {
+                                            handleAnswerChange(q.id, current.filter(v => v !== opt));
+                                        }
+                                    }}
+                                    style={{ accentColor: 'hsl(var(--v-primary))', width: 18, height: 18 }}
+                                />
+                                <span>{opt}</span>
+                            </label>
+                        ))}
+                    </div>
+                )}
+
+                {q.type === 'DROPDOWN' && (
+                    <div style={{ position: 'relative' }}>
+                        <select
+                            className="vellum-input"
+                            value={answers[q.id] || ''}
+                            onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                            required={q.required}
+                            style={{ width: '100%', padding: '0.75rem', appearance: 'none', background: 'hsl(var(--v-surface))' }}
+                        >
+                            <option value="">Select an option</option>
+                            {q.options?.map((opt, i) => (
+                                <option key={i} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                        <ChevronDown size={18} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'hsl(var(--v-text-muted))' }} />
+                    </div>
+                )}
+
+                {q.type === 'DATE' && (
+                    <div style={{ position: 'relative', width: 'fit-content' }}>
+                        <input
+                            type="date"
+                            className="vellum-input"
+                            value={answers[q.id] || ''}
+                            onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                            required={q.required}
+                            style={{ padding: '0.75rem', paddingLeft: '2.5rem' }}
+                        />
+                        <Calendar size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'hsl(var(--v-text-muted))' }} />
+                    </div>
+                )}
             </div>
         );
-    }
+    };
 
     return (
-        <div style={{ minHeight: '100vh', padding: '4rem 1rem' }}>
-            <form className="container" style={{ maxWidth: '640px' }} onSubmit={handleSubmit}>
-                <div className="vellum-card" style={{ borderTop: '8px solid hsl(var(--v-primary))', marginBottom: '3rem' }}>
-                    <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>{form.title}</h1>
-                    <p style={{ color: 'hsl(var(--v-text-muted))', fontSize: '1.1rem' }}>{form.description}</p>
+        <div style={{ minHeight: '100vh', position: 'relative', paddingBottom: '4rem', overflowX: 'hidden' }}>
+            {/* Background Orbs */}
+            <div className="dashboard-background">
+                <div className="dashboard-orb d-orb-1"></div>
+                <div className="dashboard-orb d-orb-3"></div>
+            </div>
+
+            <div style={{ position: 'relative', zIndex: 10 }}>
+                <PublicHeader />
+
+                {/* Form Header */}
+                <div style={{ height: '240px', background: 'linear-gradient(135deg, hsl(var(--v-primary)), hsl(var(--v-accent)))', marginBottom: '-80px', position: 'relative', zIndex: 5 }}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'url("https://www.transparenttextures.com/patterns/cubes.png")', opacity: 0.1 }}></div>
                 </div>
 
-                {form.questions.sort((a, b) => a.order - b.order).map(q => (
-                    <div key={q.id} className="vellum-card fade-in" style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: '2rem 0', borderBottom: '1px solid hsl(var(--v-border))', borderRadius: 0 }}>
-                        <div style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '2rem' }}>
-                            {q.label} {q.required && <span style={{ color: 'hsl(var(--v-primary))' }}>*</span>}
-                        </div>
-
-                        <div className="vellum-card" style={{ background: 'hsl(var(--v-surface))', padding: '2rem', border: '1px solid hsl(var(--v-border))', boxShadow: 'var(--shadow-md)' }}>
-                            {q.type === 'TEXT' && (
-                                <input
-                                    className="vellum-input"
-                                    placeholder="Type your answer here..."
-                                    required={q.required}
-                                    value={answers[q.id] || ''}
-                                    onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
-                                    style={{ border: 'none', borderBottom: '2px solid hsl(var(--v-border))', borderRadius: 0, paddingLeft: 0, background: 'transparent' }}
-                                />
-                            )}
-
-                            {q.type === 'MULTIPLE_CHOICE' && (
-                                <div className="flex-column" style={{ gap: '1.25rem' }}>
-                                    {q.options.map((opt, idx) => (
-                                        <label key={idx} className="flex" style={{ alignItems: 'center', gap: '1rem', cursor: 'pointer', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--v-border))', transition: 'all 0.2s' }}>
-                                            <input
-                                                type="radio"
-                                                name={q.id}
-                                                value={opt}
-                                                required={q.required}
-                                                onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
-                                                style={{ width: '18px', height: '18px', accentColor: 'hsl(var(--v-primary))' }}
-                                            />
-                                            <span style={{ fontWeight: '500' }}>{opt}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            )}
-
-                            {q.type === 'CHECKBOX' && (
-                                <div className="flex-column" style={{ gap: '1.25rem' }}>
-                                    {q.options.map((opt, idx) => (
-                                        <label key={idx} className="flex" style={{ alignItems: 'center', gap: '1rem', cursor: 'pointer', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--v-border))', transition: 'all 0.2s' }}>
-                                            <input
-                                                type="checkbox"
-                                                value={opt}
-                                                checked={(answers[q.id] || []).includes(opt)}
-                                                onChange={(e) => handleCheckboxChange(q.id, opt, e.target.checked)}
-                                                style={{ width: '18px', height: '18px', accentColor: 'hsl(var(--v-primary))' }}
-                                            />
-                                            <span style={{ fontWeight: '500' }}>{opt}</span>
-                                        </label>
-                                    ))}
-                                    {q.required && (answers[q.id] || []).length === 0 && <input type="checkbox" required style={{ opacity: 0, position: 'absolute' }} />}
-                                </div>
-                            )}
-
-                            {q.type === 'DROPDOWN' && (
-                                <select
-                                    className="vellum-input"
-                                    required={q.required}
-                                    value={answers[q.id] || ''}
-                                    onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
-                                    style={{ background: 'hsl(var(--v-surface))' }}
-                                >
-                                    <option value="">Select an option</option>
-                                    {q.options.map((opt, idx) => (
-                                        <option key={idx} value={opt}>{opt}</option>
-                                    ))}
-                                </select>
-                            )}
-                        </div>
+                <div className="container" style={{ maxWidth: '720px', position: 'relative', zIndex: 10 }}>
+                    {/* Title Card */}
+                    <div className="vellum-card-premium" style={{ padding: '3rem', marginBottom: '2rem', borderTop: '8px solid hsl(var(--v-primary))' }}>
+                        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', lineHeight: 1.2, fontWeight: 700 }}>{form.title}</h1>
+                        <p style={{ color: 'hsl(var(--v-text-muted))', fontSize: '1.1rem', lineHeight: 1.6 }}>{form.description || "Please fill out this form."}</p>
                     </div>
-                ))}
 
-                <div className="flex-between" style={{ marginTop: '4rem' }}>
-                    <button type="submit" className="btn btn-primary" style={{ padding: '1rem 3rem', fontSize: '1.1rem' }}>
-                        Submit Response <ChevronRight size={20} />
-                    </button>
-                    <button type="button" className="btn btn-ghost" onClick={() => setAnswers({})}>Clear form</button>
+                    {/* Questions */}
+                    {submitted ? (
+                        <div className="vellum-card-premium" style={{ padding: '3rem', textAlign: 'center' }}>
+                            <div style={{ width: 64, height: 64, background: 'hsl(var(--v-success) / 0.1)', color: 'hsl(var(--v-success))', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                                <CheckSquare size={32} />
+                            </div>
+                            <h2 style={{ fontSize: '1.75rem', marginBottom: '1rem' }}>Response Recorded</h2>
+                            <p style={{ color: 'hsl(var(--v-text-muted))', marginBottom: '2rem' }}>Thank you! Your response has been successfully submitted.</p>
+                            <button className="btn btn-outline" onClick={() => window.location.reload()}>Submit Another Response</button>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSubmit}>
+                            {form.questions?.map((q, i) => renderQuestion(q, i))}
+
+                            {/* Submit Button */}
+                            <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginTop: '3rem' }}>
+                                <button
+                                    className="btn btn-primary btn-large"
+                                    style={{ padding: '1rem 3rem', fontSize: '1.1rem', borderRadius: '30px' }}
+                                    disabled={submitting}
+                                >
+                                    {submitting ? 'Submitting...' : 'Submit Response'}
+                                </button>
+                                <div style={{ fontSize: '0.875rem', color: 'hsl(var(--v-text-muted))', opacity: 0.7 }}>
+                                    Powered by <strong>Vellum</strong>
+                                </div>
+                            </div>
+                        </form>
+                    )}
                 </div>
-
-                <p style={{ fontSize: '0.875rem', color: 'hsl(var(--v-text-muted))', marginTop: '4rem', textAlign: 'center', opacity: 0.5 }}>
-                    Powered by Vellum • Refinement in every form.
-                </p>
-            </form>
+            </div>
         </div>
     );
 };

@@ -88,6 +88,8 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [deletingId, setDeletingId] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [toast, setToast] = useState(null);
     const [activeView, setActiveView] = useState('overview');
@@ -116,8 +118,19 @@ const Dashboard = () => {
 
     const fetchForms = async () => {
         try {
-            const res = await formService.list();
-            setForms(res.data);
+            setLoading(true);
+            const res = await formService.list({
+                page,
+                limit: 12,
+                search: searchTerm
+            });
+            // Handle both new structure { forms, pagination } and potential old/direct structure
+            if (res.data.forms) {
+                setForms(res.data.forms);
+                setTotalPages(res.data.pagination.totalPages);
+            } else {
+                setForms(res.data); // Fallback
+            }
         } catch (err) {
             console.error(err);
         } finally {
@@ -125,18 +138,19 @@ const Dashboard = () => {
         }
     };
 
-    const filteredForms = forms.filter(f =>
-        f.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        f.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    // Calculate stats
-    const totalResponses = forms.reduce((acc, form) => acc + (form._count?.responses || 0), 0);
-    const activeForms = forms.filter(f => f.isPublic).length;
-
+    // Use effect to fetch when page or search changes
     useEffect(() => {
-        fetchForms();
-    }, []);
+        const timer = setTimeout(() => {
+            fetchForms();
+        }, 300); // Debounce search
+        return () => clearTimeout(timer);
+    }, [page, searchTerm]);
+
+    // Derived state for stats only (if needed, otherwise rely on backend stats endpoint)
+    // Note: This is an approximation since we're paginating now.
+    // Ideally, we should have a `formService.stats()` endpoint.
+    const activeForms = forms.filter(f => f.isPublic).length;
+    const totalResponses = forms.reduce((acc, form) => acc + (form._count?.responses || 0), 0);
 
     const createFromTemplate = async (template) => {
         try {
@@ -276,7 +290,7 @@ const Dashboard = () => {
                     </div>
                     <button className="btn btn-ghost" onClick={() => setActiveView('forms')} style={{ color: 'hsl(var(--v-primary))' }}>View All</button>
                 </div>
-                {renderFormsGrid(filteredForms.slice(0, 3))}
+                {renderFormsGrid(forms.slice(0, 3))}
             </motion.section>
         </>
     );
@@ -311,7 +325,30 @@ const Dashboard = () => {
                 {/* Future: Filters */}
             </div>
 
-            {renderFormsGrid(filteredForms)}
+            {renderFormsGrid(forms)}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="flex-center" style={{ marginTop: '2rem', gap: '1rem' }}>
+                    <button
+                        className="btn btn-outline"
+                        disabled={page === 1}
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                    >
+                        Previous
+                    </button>
+                    <span style={{ color: 'hsl(var(--v-text-muted))' }}>
+                        Page {page} of {totalPages}
+                    </span>
+                    <button
+                        className="btn btn-outline"
+                        disabled={page === totalPages}
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
         </motion.div>
     );
 
@@ -474,7 +511,7 @@ const Dashboard = () => {
                 <div className="dashboard-orb d-orb-3"></div>
             </div>
 
-            <div className="dashboard-container">
+            <div className="dashboard-container" style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
                 {/* Sidebar */}
                 <div className="dashboard-sidebar vellum-glass">
                     <div className="sidebar-nav">
@@ -519,7 +556,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Main Content */}
-                <main className="dashboard-content-wrapper">
+                <main className="dashboard-content-wrapper" style={{ flex: 1, overflowY: 'auto', height: '100vh', paddingBottom: '2rem' }}>
                     {activeView === 'overview' && renderOverview()}
                     {activeView === 'forms' && renderMyForms()}
                     {activeView === 'analytics' && renderAnalytics()}

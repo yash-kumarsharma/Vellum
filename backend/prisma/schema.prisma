@@ -36,6 +36,7 @@ model Form {
   responses     Response[]
   collaborators Collaborator[]
   createdAt     DateTime @default(now())
+  deletedAt     DateTime?
 
   @@index([ownerId])
   @@index([createdAt(sort: Desc)])

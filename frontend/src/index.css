@@ -6,7 +6,11 @@
   --v-primary-low: 262 80% 52% / 0.1;
   --v-accent: 217 91% 60%;
 
+  /* Vibrant Light Mesh Gradient */
+  --v-bg-color: #f8fafc;
+  --v-bg-gradient: radial-gradient(circle at 10% 20%, rgb(239, 246, 255) 0%, rgb(219, 228, 255) 90%);
   --v-bg: 210 40% 98%;
+  /* Fallback/Base HSL */
   --v-surface: 0 0% 100%;
   --v-surface-raised: 0 0% 100%;
 
@@ -56,7 +60,10 @@
 
 body {
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: hsl(var(--v-bg));
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--v-bg-gradient);
+  background-color: var(--v-bg-color);
+  background-attachment: fixed;
   color: hsl(var(--v-text-main));
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;

@@ -20,10 +20,10 @@ export const authService = {
 
 export const formService = {
     create: (data) => api.post('/forms', data),
-    list: () => api.get('/forms'),
+    list: (params) => api.get('/forms', { params }),
     getOne: (id) => api.get(`/forms/${id}`),
     getById: (id) => api.get(`/forms/public/${id}`),
-    getUserForms: () => api.get('/forms'), // New
+    // getUserForms removed as it was duplicate
     update: (id, data) => api.put(`/forms/${id}`, data),
     delete: (id) => api.delete(`/forms/${id}`),
 };
