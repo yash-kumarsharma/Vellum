@@ -103,6 +103,7 @@ const getFormById = async (id, userId) => {
 
 const updateForm = async (id, userId, data) => {
   const { title, description, questions, isPublic } = data;
+  console.log("SERVICE UPDATE DATA:", { title, description, isPublic, questionsCount: questions?.length }); // Log data
 
   // Verify ownership
   const existing = await prisma.form.findUnique({ where: { id } });

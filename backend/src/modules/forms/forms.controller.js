@@ -43,6 +43,8 @@ const getPublic = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
+    console.log("UPDATE FORM REQUEST:", req.params.id);
+    console.log("UPDATE BODY:", JSON.stringify(req.body, null, 2)); // Log the body
     const form = await formService.updateForm(
       req.params.id,
       req.user.userId,

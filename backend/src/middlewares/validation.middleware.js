@@ -82,7 +82,8 @@ const formValidation = {
         body('isPublic')
             .optional()
             .isBoolean()
-            .withMessage('isPublic must be a boolean'),
+            .withMessage('isPublic must be a boolean')
+            .toBoolean(),
         validate
     ],
     delete: [
@@ -137,6 +138,12 @@ const responseValidation = {
         param('formId')
             .isUUID()
             .withMessage('Invalid form ID'),
+        validate
+    ],
+    delete: [
+        param('id')
+            .isUUID()
+            .withMessage('Invalid response ID'),
         validate
     ]
 };

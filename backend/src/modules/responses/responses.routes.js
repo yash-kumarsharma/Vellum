@@ -10,4 +10,7 @@ router.post("/:formId", responseValidation.submit, controller.submit);
 // Admin-only view
 router.get("/:formId", auth, responseValidation.list, controller.list);
 
+// Delete response
+router.delete("/:id", auth, responseValidation.delete, controller.remove);
+
 module.exports = router;

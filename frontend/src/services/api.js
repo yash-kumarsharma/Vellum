@@ -31,6 +31,7 @@ export const formService = {
 export const responseService = {
     submit: (formId, data) => api.post(`/responses/${formId}`, data),
     list: (formId) => api.get(`/responses/${formId}`),
+    delete: (id) => api.delete(`/responses/${id}`),
 };
 
 export default api;

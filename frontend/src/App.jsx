@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import FormBuilder from './pages/FormBuilder';
+import FormPreview from './pages/FormPreview';
 import PublicForm from './pages/PublicForm';
 import Responses from './pages/Responses';
 import HomePage from './pages/HomePage';
@@ -173,6 +174,7 @@ function App() {
                         <Route path="/register" element={<Register />} />
                         <Route path="/public/:id" element={<PublicForm />} />
                         <Route path="/forms/:id/responses" element={<PrivateRoute><Responses /></PrivateRoute>} />
+                        <Route path="/forms/:id/preview" element={<PrivateRoute><FormPreview /></PrivateRoute>} />
                         <Route path="/forms/:id" element={<PrivateRoute><FormBuilder /></PrivateRoute>} />
                         <Route path="/dashboard" element={
                             <PrivateRoute>
