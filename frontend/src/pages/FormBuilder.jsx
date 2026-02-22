@@ -231,9 +231,6 @@ const FormBuilder = () => {
                 onTogglePublic={() => setIsPublic(!isPublic)}
                 onBack={() => navigate('/dashboard')}
                 onToggleLeft={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                user={user}
-                isDarkMode={isDarkMode}
-                onToggleTheme={toggleTheme}
             />
 
             <div className="builder-main-layout flex">
@@ -365,7 +362,9 @@ const FormBuilder = () => {
                         >
                             <div className="modal-header">
                                 <h3>Share Form</h3>
-                                <button className="close-btn" onClick={() => setShowShareModal(false)}>×</button>
+                                <button className="modal-close-btn" onClick={() => setShowShareModal(false)}>
+                                    <X size={20} />
+                                </button>
                             </div>
                             <p className="modal-description">Anyone with this link can view and submit the form.</p>
                             <div className="share-link-group">

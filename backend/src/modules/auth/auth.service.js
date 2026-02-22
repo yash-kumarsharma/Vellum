@@ -32,4 +32,27 @@ const getUserById = async (id) => {
   });
 };
 
-module.exports = { registerUser, loginUser, getUserById };
+const updateProfile = async (id, data) => {
+  return prisma.user.update({
+    where: { id },
+    data,
+    select: { id: true, email: true, name: true }
+  });
+};
+
+const updatePassword = async (id, currentPassword, newPassword) => {
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) throw new Error("User not found");
+
+  const match = await comparePassword(currentPassword, user.password);
+  if (!match) throw new Error("Current password incorrect");
+
+  const hashed = await hashPassword(newPassword);
+
+  return prisma.user.update({
+    where: { id },
+    data: { password: hashed }
+  });
+};
+
+module.exports = { registerUser, loginUser, getUserById, updateProfile, updatePassword };

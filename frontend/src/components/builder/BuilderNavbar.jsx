@@ -7,6 +7,9 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import ProfileDropdown from '../ProfileDropdown';
+import { useAuth } from '../../context/AuthContext';
+
 const BuilderNavbar = ({
     title,
     onTitleChange,
@@ -17,11 +20,9 @@ const BuilderNavbar = ({
     isPublic,
     onTogglePublic,
     onBack,
-    onToggleLeft,
-    user,
-    isDarkMode,
-    onToggleTheme
+    onToggleLeft
 }) => {
+    const { isDarkMode, toggleTheme } = useAuth();
     const navigate = useNavigate();
     const { id } = useParams();
     const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -108,21 +109,27 @@ const BuilderNavbar = ({
                     <span className="hide-tablet">Share</span>
                 </button>
 
-                <div className="nav-divider"></div>
-
-                <button className="btn btn-ghost btn-icon theme-toggle" onClick={onToggleTheme} title="Toggle Theme">
-                    {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                <button
+                    className="btn btn-ghost"
+                    onClick={toggleTheme}
+                    title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                    style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 0,
+                        color: 'hsl(var(--v-text-main))'
+                    }}
+                >
+                    {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
                 </button>
 
-                <div className="user-avatar-wrapper">
-                    <div
-                        className="avatar"
-                        style={{ background: 'hsl(var(--v-primary))', color: 'white', fontWeight: 'bold' }}
-                        title={user?.name}
-                    >
-                        {user?.name?.[0].toUpperCase() || 'U'}
-                    </div>
-                </div>
+                <div className="nav-divider"></div>
+
+                <ProfileDropdown />
             </div>
 
             <style>{`

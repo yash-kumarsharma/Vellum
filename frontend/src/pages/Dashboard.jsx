@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { formService } from '../services/api';
+import { formService, authService } from '../services/api';
 import {
     Plus,
     Layout,
@@ -22,7 +22,9 @@ import {
     User,
     Mail,
     Shield,
-    LogOut
+    LogOut,
+    Key,
+    X
 } from 'lucide-react';
 
 const SidebarItem = ({ icon, label, active, onClick }) => (
@@ -77,12 +79,383 @@ const TemplateCard = ({ template, onClick, delay }) => (
             <div className="template-title">{template.title}</div>
             <div className="template-meta">{template.questions.length} questions</div>
         </div>
-        <ChevronRight size={20} style={{ color: 'hsl(var(--v-text-muted))', opacity: 0.5 }} />
     </motion.div>
 );
 
+const FormsGrid = ({ formsList, searchTerm, activeView, createNewForm, setDeletingId, setShowDeleteModal }) => {
+    if (formsList.length === 0) {
+        return (
+            <div className="empty-state" style={{ padding: '4rem 2rem' }}>
+                <Layout size={48} style={{ marginBottom: '1rem', opacity: 0.2, color: 'hsl(var(--v-text-main))' }} />
+                <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', fontWeight: 600 }}>
+                    {searchTerm ? 'No matches found' : 'Your workspace is empty'}
+                </h3>
+                {activeView !== 'forms' && (
+                    <button className="btn btn-outline" onClick={createNewForm} style={{ marginTop: '1rem' }}>
+                        Create New Form
+                    </button>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <div className="dashboard-forms-grid">
+            {formsList.map((f, index) => (
+                <motion.div
+                    key={f.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+                >
+                    <Link to={`/forms/${f.id}`} className="vellum-card-premium" style={{ display: 'flex', flexDirection: 'column', height: '100%', textDecoration: 'none' }}>
+                        <div className="form-visual-preview">
+                            <div className="form-visual-icon">
+                                <Layout size={24} />
+                            </div>
+                            <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
+                                <div className={`form-status-badge ${f.isPublic ? 'live' : 'private'}`} style={{
+                                    background: f.isPublic ? 'hsl(142 76% 36% / 0.1)' : 'hsl(215 16% 47% / 0.1)',
+                                    color: f.isPublic ? 'hsl(142 76% 36%)' : 'hsl(215 16% 47%)',
+                                    padding: '0.25rem 0.6rem',
+                                    borderRadius: '999px',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.25rem'
+                                }}>
+                                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }}></div>
+                                    {f.isPublic ? 'Live' : 'Private'}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="form-card-body" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            <h3 className="form-card-title" style={{ fontSize: '1.1rem', marginBottom: '0.5rem', lineHeight: '1.4', color: 'hsl(var(--v-text-main))', fontWeight: 600 }}>{f.title}</h3>
+                            <p style={{ fontSize: '0.875rem', color: 'hsl(var(--v-text-muted))', marginBottom: '1.5rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                {f.description || 'No description provided.'}
+                            </p>
+                            <div className="form-card-footer" style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid hsl(var(--v-border) / 0.5)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div className="form-responses" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'hsl(var(--v-text-muted))' }}>
+                                    <BarChart size={16} />
+                                    <span>{f._count?.responses || 0} responses</span>
+                                </div>
+                                <div
+                                    className="form-delete-btn"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setDeletingId(f.id);
+                                        setShowDeleteModal(true);
+                                    }}
+                                    title="Delete Form"
+                                    style={{ padding: '0.5rem', borderRadius: '6px', color: '#ef4444', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                >
+                                    <Trash2 size={16} />
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+                </motion.div>
+            ))}
+        </div>
+    );
+};
+
+const OverviewView = ({ user, createNewForm, forms, totalResponses, activeForms, createFromTemplate, setActiveView, templates, setDeletingId, setShowDeleteModal }) => (
+    <>
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="dashboard-hero">
+            <div>
+                <h1 className="dashboard-title">Hello, {user?.name.split(' ')[0]}</h1>
+                <p className="dashboard-subtitle">Here's what's happening in your workspace today.</p>
+            </div>
+            <button className="btn btn-primary btn-large" onClick={createNewForm} style={{ gap: '0.75rem', boxShadow: '0 8px 20px -4px hsl(var(--v-primary) / 0.4)' }}>
+                <Plus size={24} /> Create New Form
+            </button>
+        </motion.div>
+        <div className="dashboard-stats-grid">
+            <StatCard icon={<Layout size={24} />} label="Total Forms" value={forms.length} trend="+2 this week" delay={0.1} />
+            <StatCard icon={<BarChart size={24} />} label="Total Responses" value={totalResponses} trend="+12% vs last week" delay={0.2} />
+            <StatCard icon={<CheckCircle size={24} />} label="Active Forms" value={activeForms} delay={0.3} />
+        </div>
+        <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="dashboard-section">
+            <div className="section-header">
+                <h2 className="section-title">Start from a template</h2>
+                <p className="section-description">Launch a new project quickly with our pre-built templates.</p>
+            </div>
+            <div className="dashboard-templates-grid">
+                {templates.map((t, i) => (
+                    <TemplateCard key={t.id} template={t} onClick={() => createFromTemplate(t)} delay={0.4 + (i * 0.1)} />
+                ))}
+            </div>
+        </motion.section>
+        <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="dashboard-section">
+            <div className="section-header flex-between">
+                <div>
+                    <h2 className="section-title">Recent Forms</h2>
+                    <p className="section-description">Manage your most recent active forms.</p>
+                </div>
+                <button className="btn btn-ghost" onClick={() => setActiveView('forms')} style={{ color: 'hsl(var(--v-primary))' }}>View All</button>
+            </div>
+            <FormsGrid formsList={forms.slice(0, 3)} searchTerm="" activeView="overview" createNewForm={createNewForm} setDeletingId={setDeletingId} setShowDeleteModal={setShowDeleteModal} />
+        </motion.section>
+    </>
+);
+
+const MyFormsView = ({ forms, searchTerm, setSearchTerm, page, totalPages, setPage, createNewForm, setDeletingId, setShowDeleteModal }) => (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <div className="view-header">
+            <div>
+                <h1 className="view-title">My Forms</h1>
+                <p className="view-subtitle">Manage, edit, and analyze all your forms.</p>
+            </div>
+            <button className="btn btn-primary" onClick={createNewForm} style={{ gap: '0.5rem' }}>
+                <Plus size={20} /> New Form
+            </button>
+        </div>
+        <div className="flex-between" style={{ marginBottom: '2rem' }}>
+            <div className="vellum-input" style={{ width: '300px', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Search size={20} color="hsl(var(--v-text-muted))" />
+                <input type="text" placeholder="Search forms..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', color: 'inherit', width: '100%' }} />
+            </div>
+        </div>
+        <FormsGrid formsList={forms} searchTerm={searchTerm} activeView="forms" createNewForm={createNewForm} setDeletingId={setDeletingId} setShowDeleteModal={setShowDeleteModal} />
+        {totalPages > 1 && (
+            <div className="flex-center" style={{ marginTop: '2rem', gap: '1rem' }}>
+                <button className="btn btn-outline" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>Previous</button>
+                <span style={{ color: 'hsl(var(--v-text-muted))' }}>Page {page} of {totalPages}</span>
+                <button className="btn btn-outline" disabled={page === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Next</button>
+            </div>
+        )}
+    </motion.div>
+);
+
+const AnalyticsView = ({ forms, totalResponses }) => (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <div className="view-header">
+            <div>
+                <h1 className="view-title">Analytics Overview</h1>
+                <p className="view-subtitle">Insights into your form performance.</p>
+            </div>
+            <div className="vellum-chip">Last 30 Days</div>
+        </div>
+        <div className="dashboard-stats-grid" style={{ marginBottom: '3rem' }}>
+            <StatCard icon={<Layout size={24} />} label="Total Forms" value={forms.length} delay={0.1} />
+            <StatCard icon={<BarChart size={24} />} label="Total Responses" value={totalResponses} trend="+12%" delay={0.2} />
+            <StatCard icon={<CheckCircle size={24} />} label="Avg. Completion" value="84%" trend="+5%" delay={0.3} />
+        </div>
+        <div className="vellum-card-premium" style={{ padding: '3rem', textAlign: 'center' }}>
+            <PieChart size={64} style={{ color: 'hsl(var(--v-primary) / 0.3)', marginBottom: '1.5rem', marginInline: 'auto' }} />
+            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Detailed Analytics Coming Soon</h3>
+            <p style={{ color: 'hsl(var(--v-text-muted))' }}>We're building advanced charts and breakdown reports.</p>
+        </div>
+    </motion.div>
+);
+
+const AVATAR_COLORS = [
+    { name: 'Purple', value: 'hsl(262, 80%, 52%)' },
+    { name: 'Blue', value: 'hsl(217, 91%, 60%)' },
+    { name: 'Green', value: 'hsl(142, 76%, 36%)' },
+    { name: 'Red', value: 'hsl(0, 72%, 51%)' },
+    { name: 'Orange', value: 'hsl(24, 94%, 50%)' },
+    { name: 'Indigo', value: 'hsl(239, 84%, 67%)' }
+];
+
+const SettingsView = ({ user, updateUser }) => {
+    const [name, setName] = useState(user?.name || '');
+    const [saving, setSaving] = useState(false);
+    const [changingPassword, setChangingPassword] = useState(false);
+
+    // Password states
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
+    const [selectedColor, setSelectedColor] = useState(
+        JSON.parse(localStorage.getItem('vellum_avatar_pref'))?.color || AVATAR_COLORS[0].value
+    );
+
+    const handleColorChange = (color) => {
+        setSelectedColor(color);
+        localStorage.setItem('vellum_avatar_pref', JSON.stringify({ color }));
+        window.dispatchEvent(new Event('avatar-color-changed'));
+    };
+
+    const handleUpdateProfile = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            const res = await authService.updateProfile({ name });
+            updateUser(res.data);
+            window.dispatchEvent(new CustomEvent('vellum-notify', { detail: { msg: 'Profile updated successfully!', type: 'success' } }));
+        } catch (err) {
+            window.dispatchEvent(new CustomEvent('vellum-notify', { detail: { msg: err.response?.data?.message || 'Update failed', type: 'error' } }));
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handlePasswordUpdate = async (e) => {
+        e.preventDefault();
+        if (newPassword !== confirmPassword) {
+            window.dispatchEvent(new CustomEvent('vellum-notify', { detail: { msg: 'Passwords do not match', type: 'error' } }));
+            return;
+        }
+        setChangingPassword(true);
+        try {
+            await authService.updatePassword({ currentPassword, newPassword });
+            window.dispatchEvent(new CustomEvent('vellum-notify', { detail: { msg: 'Password updated successfully!', type: 'success' } }));
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+        } catch (err) {
+            window.dispatchEvent(new CustomEvent('vellum-notify', { detail: { msg: err.response?.data?.message || 'Update failed', type: 'error' } }));
+        } finally {
+            setChangingPassword(false);
+        }
+    };
+
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="view-header">
+                <div>
+                    <h1 className="view-title">Account Settings</h1>
+                    <p className="view-subtitle">Manage your profile and security preferences.</p>
+                </div>
+            </div>
+            <div className="flex" style={{ gap: '2rem', flexWrap: 'wrap' }}>
+                {/* Profile Section */}
+                <div className="vellum-card-premium" style={{ flex: '1 1 450px', padding: '2.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', marginBottom: '2.5rem' }}>
+                        <div style={{
+                            width: 100,
+                            height: 100,
+                            borderRadius: '50%',
+                            background: selectedColor,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '2.5rem',
+                            fontWeight: 700,
+                            color: 'white',
+                            boxShadow: `0 0 25px ${selectedColor}44`,
+                            transition: 'background 0.3s'
+                        }}>
+                            {user?.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Avatar Color</h3>
+                            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                {AVATAR_COLORS.map(color => (
+                                    <button
+                                        key={color.name}
+                                        onClick={() => handleColorChange(color.value)}
+                                        style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '50%',
+                                            background: color.value,
+                                            border: selectedColor === color.value ? '3px solid white' : 'none',
+                                            boxShadow: selectedColor === color.value ? '0 0 0 2px hsl(var(--v-primary))' : 'none',
+                                            cursor: 'pointer',
+                                            transition: 'transform 0.2s'
+                                        }}
+                                        title={color.name}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleUpdateProfile} style={{ display: 'grid', gap: '1.5rem' }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.625rem', color: 'hsl(var(--v-text-muted))', textTransform: 'uppercase' }}>Full Name</label>
+                            <div className="vellum-input" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <User size={18} color="hsl(var(--v-text-muted))" />
+                                <input type="text" value={name} onChange={(e) => setName(e.target.value)} style={{ background: 'transparent', border: 'none', color: 'inherit', width: '100%', outline: 'none' }} />
+                            </div>
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.625rem', color: 'hsl(var(--v-text-muted))', textTransform: 'uppercase' }}>Email Address</label>
+                            <div className="vellum-input" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: 0.6, cursor: 'not-allowed' }}>
+                                <Mail size={18} color="hsl(var(--v-text-muted))" />
+                                <input type="email" value={user?.email} readOnly style={{ background: 'transparent', border: 'none', color: 'inherit', width: '100%', outline: 'none', cursor: 'not-allowed' }} />
+                            </div>
+                        </div>
+                        <div style={{ marginTop: '1rem', paddingTop: '1.5rem', borderTop: '1px solid hsl(var(--v-border))' }}>
+                            <button type="submit" className="btn btn-primary" disabled={saving}>
+                                {saving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {/* Security Section */}
+                <div className="vellum-card-premium" style={{ flex: '1 1 350px', padding: '2.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+                        <Shield size={24} style={{ color: 'hsl(var(--v-primary))' }} />
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Security</h3>
+                    </div>
+
+                    <form onSubmit={handlePasswordUpdate} style={{ display: 'grid', gap: '1.25rem' }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.5rem', color: 'hsl(var(--v-text-muted))' }}>Current Password</label>
+                            <div className="vellum-input" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <Key size={18} color="hsl(var(--v-text-muted))" />
+                                <input
+                                    type="password"
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    style={{ background: 'transparent', border: 'none', color: 'inherit', width: '100%', outline: 'none' }}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.5rem', color: 'hsl(var(--v-text-muted))' }}>New Password</label>
+                            <div className="vellum-input" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <Key size={18} color="hsl(var(--v-text-muted))" />
+                                <input
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    placeholder="Min 8 characters"
+                                    style={{ background: 'transparent', border: 'none', color: 'inherit', width: '100%', outline: 'none' }}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.5rem', color: 'hsl(var(--v-text-muted))' }}>Confirm Password</label>
+                            <div className="vellum-input" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <Key size={18} color="hsl(var(--v-text-muted))" />
+                                <input
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="Confirm new password"
+                                    style={{ background: 'transparent', border: 'none', color: 'inherit', width: '100%', outline: 'none' }}
+                                />
+                            </div>
+                        </div>
+                        <button type="submit" className="btn btn-outline" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }} disabled={changingPassword}>
+                            {changingPassword ? 'Updating...' : 'Update Password'}
+                        </button>
+                    </form>
+
+                    <div style={{ marginTop: '3rem', paddingTop: '1.5rem', borderTop: '1px solid hsl(var(--v-border))' }}>
+                        <h4 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem', color: '#ef4444' }}>Danger Zone</h4>
+                        <button className="btn btn-outline" style={{ width: '100%', borderColor: '#ef4444', color: '#ef4444', justifyContent: 'center' }}>
+                            <Trash2 size={18} /> Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
 const Dashboard = () => {
-    const { user } = useAuth();
+    const { user, updateUser, isDarkMode, toggleTheme } = useAuth();
     const navigate = useNavigate();
     const [forms, setForms] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -124,12 +497,11 @@ const Dashboard = () => {
                 limit: 12,
                 search: searchTerm
             });
-            // Handle both new structure { forms, pagination } and potential old/direct structure
             if (res.data.forms) {
                 setForms(res.data.forms);
                 setTotalPages(res.data.pagination.totalPages);
             } else {
-                setForms(res.data); // Fallback
+                setForms(res.data);
             }
         } catch (err) {
             console.error(err);
@@ -138,17 +510,13 @@ const Dashboard = () => {
         }
     };
 
-    // Use effect to fetch when page or search changes
     useEffect(() => {
         const timer = setTimeout(() => {
             fetchForms();
-        }, 300); // Debounce search
+        }, 300);
         return () => clearTimeout(timer);
     }, [page, searchTerm]);
 
-    // Derived state for stats only (if needed, otherwise rely on backend stats endpoint)
-    // Note: This is an approximation since we're paginating now.
-    // Ideally, we should have a `formService.stats()` endpoint.
     const activeForms = forms.filter(f => f.isPublic).length;
     const totalResponses = forms.reduce((acc, form) => acc + (form._count?.responses || 0), 0);
 
@@ -192,11 +560,11 @@ const Dashboard = () => {
         return (
             <div className="dashboard-wrapper">
                 <div className="dashboard-background">
-                    <div className="dashboard-orb d-orb-1"></div>
-                    <div className="dashboard-orb d-orb-2"></div>
+                    <div className="dashboard-orb d-orb-1" />
+                    <div className="dashboard-orb d-orb-2" />
                 </div>
                 <div className="flex-center" style={{ minHeight: '100vh', flexDirection: 'column', gap: '1rem' }}>
-                    <div className="spinner" style={{ width: 40, height: 40, border: '3px solid hsl(var(--v-border))', borderTopColor: 'hsl(var(--v-primary))', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                    <div className="spinner" style={{ width: 40, height: 40, border: '3px solid hsl(var(--v-border))', borderTopColor: 'hsl(var(--v-primary))', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
                     <p style={{ color: 'hsl(var(--v-text-muted))' }}>Loading workspace...</p>
                 </div>
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -204,304 +572,6 @@ const Dashboard = () => {
         );
     }
 
-    const renderOverview = () => (
-        <>
-            {/* Hero Section */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="dashboard-hero"
-            >
-                <div>
-                    <h1 className="dashboard-title">
-                        Hello, {user?.name.split(' ')[0]}
-                    </h1>
-                    <p className="dashboard-subtitle">
-                        Here's what's happening in your workspace today.
-                    </p>
-                </div>
-                <button
-                    className="btn btn-primary btn-large"
-                    onClick={createNewForm}
-                    style={{ gap: '0.75rem', boxShadow: '0 8px 20px -4px hsl(var(--v-primary) / 0.4)' }}
-                >
-                    <Plus size={24} /> Create New Form
-                </button>
-            </motion.div>
-
-            {/* Stats Overview */}
-            <div className="dashboard-stats-grid">
-                <StatCard
-                    icon={<Layout size={24} />}
-                    label="Total Forms"
-                    value={forms.length}
-                    trend="+2 this week"
-                    delay={0.1}
-                />
-                <StatCard
-                    icon={<BarChart size={24} />}
-                    label="Total Responses"
-                    value={totalResponses}
-                    trend="+12% vs last week"
-                    delay={0.2}
-                />
-                <StatCard
-                    icon={<CheckCircle size={24} />}
-                    label="Active Forms"
-                    value={activeForms}
-                    delay={0.3}
-                />
-            </div>
-
-            {/* Templates Section */}
-            <motion.section
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="dashboard-section"
-            >
-                <div className="section-header">
-                    <h2 className="section-title">Start from a template</h2>
-                    <p className="section-description">Launch a new project quickly with our pre-built templates.</p>
-                </div>
-                <div className="dashboard-templates-grid">
-                    {templates.map((t, i) => (
-                        <TemplateCard
-                            key={t.id}
-                            template={t}
-                            onClick={() => createFromTemplate(t)}
-                            delay={0.4 + (i * 0.1)}
-                        />
-                    ))}
-                </div>
-            </motion.section>
-
-            {/* Recent Forms (Limited) */}
-            <motion.section
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="dashboard-section"
-            >
-                <div className="section-header flex-between">
-                    <div>
-                        <h2 className="section-title">Recent Forms</h2>
-                        <p className="section-description">Manage your most recent active forms.</p>
-                    </div>
-                    <button className="btn btn-ghost" onClick={() => setActiveView('forms')} style={{ color: 'hsl(var(--v-primary))' }}>View All</button>
-                </div>
-                {renderFormsGrid(forms.slice(0, 3))}
-            </motion.section>
-        </>
-    );
-
-    const renderMyForms = () => (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div className="view-header">
-                <div>
-                    <h1 className="view-title">My Forms</h1>
-                    <p className="view-subtitle">Manage, edit, and analyze all your forms.</p>
-                </div>
-                <button
-                    className="btn btn-primary"
-                    onClick={createNewForm}
-                    style={{ gap: '0.5rem' }}
-                >
-                    <Plus size={20} /> New Form
-                </button>
-            </div>
-
-            <div className="flex-between" style={{ marginBottom: '2rem' }}>
-                <div className="vellum-input" style={{ width: '300px', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <Search size={20} color="hsl(var(--v-text-muted))" />
-                    <input
-                        type="text"
-                        placeholder="Search forms..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ border: 'none', background: 'transparent', outline: 'none', color: 'inherit', width: '100%' }}
-                    />
-                </div>
-                {/* Future: Filters */}
-            </div>
-
-            {renderFormsGrid(forms)}
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-                <div className="flex-center" style={{ marginTop: '2rem', gap: '1rem' }}>
-                    <button
-                        className="btn btn-outline"
-                        disabled={page === 1}
-                        onClick={() => setPage(p => Math.max(1, p - 1))}
-                    >
-                        Previous
-                    </button>
-                    <span style={{ color: 'hsl(var(--v-text-muted))' }}>
-                        Page {page} of {totalPages}
-                    </span>
-                    <button
-                        className="btn btn-outline"
-                        disabled={page === totalPages}
-                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
-        </motion.div>
-    );
-
-    const renderAnalytics = () => (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div className="view-header">
-                <div>
-                    <h1 className="view-title">Analytics Overview</h1>
-                    <p className="view-subtitle">Insights into your form performance.</p>
-                </div>
-                <div className="vellum-chip">Last 30 Days</div>
-            </div>
-
-            <div className="dashboard-stats-grid" style={{ marginBottom: '3rem' }}>
-                <StatCard icon={<Layout size={24} />} label="Total Forms" value={forms.length} delay={0.1} />
-                <StatCard icon={<BarChart size={24} />} label="Total Responses" value={totalResponses} trend="+12%" delay={0.2} />
-                <StatCard icon={<CheckCircle size={24} />} label="Avg. Completion" value="84%" trend="+5%" delay={0.3} />
-            </div>
-
-            <div className="vellum-card-premium" style={{ padding: '3rem', textAlign: 'center' }}>
-                <PieChart size={64} style={{ color: 'hsl(var(--v-primary) / 0.3)', marginBottom: '1.5rem', marginInline: 'auto' }} />
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Detailed Analytics Coming Soon</h3>
-                <p style={{ color: 'hsl(var(--v-text-muted))' }}>We're building advanced charts and breakdown reports.</p>
-            </div>
-        </motion.div>
-    );
-
-
-    const renderSettings = () => (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div className="view-header">
-                <div>
-                    <h1 className="view-title">Account Settings</h1>
-                    <p className="view-subtitle">Manage your profile and preferences.</p>
-                </div>
-            </div>
-
-            <div className="vellum-card-premium" style={{ maxWidth: '600px', padding: '2rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem' }}>
-                    <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'linear-gradient(135deg, hsl(var(--v-primary)), hsl(var(--v-accent)))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 700, color: 'white' }}>
-                        {user?.name.charAt(0)}
-                    </div>
-                    <div>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{user?.name}</h3>
-                        <p style={{ color: 'hsl(var(--v-text-muted))' }}>Free Plan</p>
-                    </div>
-                </div>
-
-                <div style={{ display: 'grid', gap: '1.5rem' }}>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem', color: 'hsl(var(--v-text-muted))' }}>Full Name</label>
-                        <div className="vellum-input" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <User size={18} color="hsl(var(--v-text-muted))" />
-                            <input type="text" value={user?.name} readOnly style={{ background: 'transparent', border: 'none', color: 'hsl(var(--v-text-muted))', width: '100%' }} />
-                        </div>
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem', color: 'hsl(var(--v-text-muted))' }}>Email Address</label>
-                        <div className="vellum-input" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <Mail size={18} color="hsl(var(--v-text-muted))" />
-                            <input type="email" value={user?.email} readOnly style={{ background: 'transparent', border: 'none', color: 'hsl(var(--v-text-muted))', width: '100%' }} />
-                        </div>
-                    </div>
-                </div>
-
-                <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid hsl(var(--v-border))' }}>
-                    <button className="btn btn-outline" style={{ width: '100%', borderColor: '#ef4444', color: '#ef4444' }}>
-                        <LogOut size={18} style={{ marginRight: '0.5rem' }} /> Sign Out
-                    </button>
-                </div>
-            </div>
-        </motion.div>
-    );
-
-    const renderFormsGrid = (formsList) => {
-        if (formsList.length === 0) {
-            return (
-                <div className="empty-state" style={{ padding: '4rem 2rem' }}>
-                    <Layout size={48} style={{ marginBottom: '1rem', opacity: 0.2, color: 'hsl(var(--v-text-main))' }} />
-                    <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', fontWeight: 600 }}>
-                        {searchTerm ? 'No matches found' : 'Your workspace is empty'}
-                    </h3>
-                    {activeView !== 'forms' && (
-                        <button className="btn btn-outline" onClick={createNewForm} style={{ marginTop: '1rem' }}>
-                            Create New Form
-                        </button>
-                    )}
-                </div>
-            );
-        }
-
-        return (
-            <div className="dashboard-forms-grid">
-                {formsList.map((f, index) => (
-                    <motion.div
-                        key={f.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                    >
-                        <Link to={`/forms/${f.id}`} className="vellum-card-premium" style={{ display: 'flex', flexDirection: 'column', height: '100%', textDecoration: 'none' }}>
-                            <div className="form-visual-preview">
-                                <div className="form-visual-icon">
-                                    <Layout size={24} />
-                                </div>
-                                <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
-                                    <div className={`form-status-badge ${f.isPublic ? 'live' : 'private'}`} style={{
-                                        background: f.isPublic ? 'hsl(142 76% 36% / 0.1)' : 'hsl(215 16% 47% / 0.1)',
-                                        color: f.isPublic ? 'hsl(142 76% 36%)' : 'hsl(215 16% 47%)',
-                                        padding: '0.25rem 0.6rem',
-                                        borderRadius: '999px',
-                                        fontSize: '0.7rem',
-                                        fontWeight: 600,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.25rem'
-                                    }}>
-                                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }}></div>
-                                        {f.isPublic ? 'Live' : 'Private'}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="form-card-body" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                <h3 className="form-card-title" style={{ fontSize: '1.1rem', marginBottom: '0.5rem', lineHeight: '1.4', color: 'hsl(var(--v-text-main))', fontWeight: 600 }}>{f.title}</h3>
-                                <p style={{ fontSize: '0.875rem', color: 'hsl(var(--v-text-muted))', marginBottom: '1.5rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                    {f.description || 'No description provided.'}
-                                </p>
-                                <div className="form-card-footer" style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid hsl(var(--v-border) / 0.5)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div className="form-responses" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'hsl(var(--v-text-muted))' }}>
-                                        <BarChart size={16} />
-                                        <span>{f._count?.responses || 0} responses</span>
-                                    </div>
-                                    <div
-                                        className="form-delete-btn"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            setDeletingId(f.id);
-                                            setShowDeleteModal(true);
-                                        }}
-                                        title="Delete Form"
-                                        style={{ padding: '0.5rem', borderRadius: '6px', color: '#ef4444', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                    >
-                                        <Trash2 size={16} />
-                                    </div>
-                                </div>
-                            </div>
-                        </Link>
-                    </motion.div>
-                ))}
-            </div>
-        );
-    };
 
     return (
         <div className="dashboard-wrapper">
@@ -557,19 +627,55 @@ const Dashboard = () => {
 
                 {/* Main Content */}
                 <main className="dashboard-content-wrapper" style={{ flex: 1, overflowY: 'auto', height: '100vh', paddingBottom: '2rem' }}>
-                    {activeView === 'overview' && renderOverview()}
-                    {activeView === 'forms' && renderMyForms()}
-                    {activeView === 'analytics' && renderAnalytics()}
-                    {activeView === 'settings' && renderSettings()}
+                    {activeView === 'overview' && (
+                        <OverviewView
+                            user={user}
+                            createNewForm={createNewForm}
+                            forms={forms}
+                            totalResponses={totalResponses}
+                            activeForms={activeForms}
+                            createFromTemplate={createFromTemplate}
+                            setActiveView={setActiveView}
+                            templates={templates}
+                        />
+                    )}
+                    {activeView === 'forms' && (
+                        <MyFormsView
+                            forms={forms}
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                            page={page}
+                            totalPages={totalPages}
+                            setPage={setPage}
+                            createNewForm={createNewForm}
+                            setDeletingId={setDeletingId}
+                            setShowDeleteModal={setShowDeleteModal}
+                        />
+                    )}
+                    {activeView === 'analytics' && (
+                        <AnalyticsView
+                            forms={forms}
+                            totalResponses={totalResponses}
+                        />
+                    )}
+                    {activeView === 'settings' && (
+                        <SettingsView
+                            user={user}
+                            updateUser={updateUser}
+                        />
+                    )}
                 </main>
             </div>
 
             {/* Delete Modal */}
             {showDeleteModal && (
                 <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                    <div className="modal-content" style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+                        <button className="modal-close-btn" onClick={() => setShowDeleteModal(false)}>
+                            <X size={20} />
+                        </button>
                         <h2 style={{ marginBottom: '1rem', fontSize: '1.5rem' }}>Delete Form?</h2>
-                        <p style={{ marginBottom: '2rem' }}>This action is permanent and will delete all questions and responses.</p>
+                        <p style={{ marginBottom: '2rem', color: 'hsl(var(--v-text-muted))' }}>This action is permanent and will delete all questions and responses.</p>
                         <div className="flex" style={{ gap: '1rem', justifyContent: 'flex-end' }}>
                             <button className="btn btn-ghost" onClick={() => setShowDeleteModal(false)}>Cancel</button>
                             <button className="btn btn-primary" style={{ background: '#ef4444' }} onClick={handleDelete}>Delete Permanently</button>
