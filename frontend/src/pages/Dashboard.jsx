@@ -26,7 +26,8 @@ import {
     Key,
     X,
     ChevronLeft,
-    Clock
+    Clock,
+    Menu
 } from 'lucide-react';
 
 const formatDate = (dateString) => {
@@ -692,6 +693,7 @@ const Dashboard = () => {
     const [toast, setToast] = useState(null);
     const [activeView, setActiveView] = useState('overview');
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [filterStatus, setFilterStatus] = useState('all'); // all, live, private
     const [sortOrder, setSortOrder] = useState('newest'); // newest, oldest, az, za
 
@@ -812,8 +814,13 @@ const Dashboard = () => {
             </div>
 
             <div className="dashboard-container" style={{ display: 'flex', height: '100vh' }}>
+                {/* Mobile sidebar overlay */}
+                {isMobileMenuOpen && (
+                    <div className="sidebar-overlay" onClick={() => setIsMobileMenuOpen(false)} />
+                )}
+
                 {/* Sidebar */}
-                <div className={`dashboard-sidebar vellum-glass ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+                <div className={`dashboard-sidebar vellum-glass ${isSidebarCollapsed ? 'collapsed' : ''} ${isMobileMenuOpen ? 'open' : ''}`}>
                     <button
                         className="sidebar-toggle-btn"
                         onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
@@ -822,6 +829,19 @@ const Dashboard = () => {
                     >
                         <ChevronLeft size={14} style={{ transform: isSidebarCollapsed ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }} />
                     </button>
+
+                    {/* Mobile close button — shown only on small screens */}
+                    <div className="sidebar-mobile-header">
+                        <span className="sidebar-mobile-brand">Vellum</span>
+                        <button
+                            className="sidebar-mobile-close"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            aria-label="Close menu"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+
                     <div className="sidebar-nav">
                         <SidebarItem
                             icon={<Home size={20} />}
@@ -849,24 +869,35 @@ const Dashboard = () => {
                         />
                     </div>
 
-                    {!isSidebarCollapsed && (
-                        <div style={{ marginTop: 'auto', padding: '1.5rem' }}>
-                            <div style={{
-                                padding: '1rem',
-                                background: 'linear-gradient(135deg, hsl(var(--v-primary) / 0.1), hsl(var(--v-accent) / 0.1))',
-                                borderRadius: 'var(--radius-md)',
-                                border: '1px solid hsl(var(--v-primary) / 0.2)'
-                            }}>
-                                <h4 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: 'hsl(var(--v-text-main))' }}>Pro Plan</h4>
-                                <p style={{ fontSize: '0.75rem', color: 'hsl(var(--v-text-muted))', marginBottom: '0.75rem' }}>Unlock advanced features</p>
-                                <button className="btn btn-primary" style={{ width: '100%', fontSize: '0.8rem', padding: '0.5rem' }}>Upgrade</button>
-                            </div>
+                    <div className="sidebar-pro-card">
+                        <div style={{
+                            padding: '1rem',
+                            background: 'linear-gradient(135deg, hsl(var(--v-primary) / 0.1), hsl(var(--v-accent) / 0.1))',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid hsl(var(--v-primary) / 0.2)'
+                        }}>
+                            <h4 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: 'hsl(var(--v-text-main))' }}>Pro Plan</h4>
+                            <p style={{ fontSize: '0.75rem', color: 'hsl(var(--v-text-muted))', marginBottom: '0.75rem' }}>Unlock advanced features</p>
+                            <button className="btn btn-primary" style={{ width: '100%', fontSize: '0.8rem', padding: '0.5rem' }}>Upgrade</button>
                         </div>
-                    )}
+                    </div>
                 </div>
 
                 {/* Main Content */}
                 <main className={`dashboard-content-wrapper ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+                    {/* Mobile top bar */}
+                    <div className="mobile-topbar">
+                        <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Open menu">
+                            <Menu size={20} />
+                        </button>
+                        <span className="mobile-topbar-title">
+                            {activeView === 'overview' ? 'Overview' :
+                                activeView === 'forms' ? 'My Forms' :
+                                    activeView === 'analytics' ? 'Analytics' : 'Settings'}
+                        </span>
+                        <div style={{ width: 40 }} />{/* spacer */}
+                    </div>
+
                     {activeView === 'overview' && (
                         <OverviewView
                             user={user}
@@ -910,6 +941,25 @@ const Dashboard = () => {
                     )}
                 </main>
             </div>
+
+            {/* Mobile Bottom Tab Nav */}
+            <nav className="mobile-bottom-nav">
+                {[
+                    { view: 'overview', icon: <Home size={20} />, label: 'Home' },
+                    { view: 'forms', icon: <FileText size={20} />, label: 'Forms' },
+                    { view: 'analytics', icon: <PieChart size={20} />, label: 'Analytics' },
+                    { view: 'settings', icon: <Settings size={20} />, label: 'Settings' },
+                ].map(({ view, icon, label }) => (
+                    <button
+                        key={view}
+                        className={`mobile-nav-tab ${activeView === view ? 'active' : ''}`}
+                        onClick={() => { setActiveView(view); setIsMobileMenuOpen(false); }}
+                    >
+                        <div className="mobile-nav-icon">{icon}</div>
+                        {label}
+                    </button>
+                ))}
+            </nav>
 
             {/* Delete Modal */}
             {showDeleteModal && (
