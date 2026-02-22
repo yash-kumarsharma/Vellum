@@ -1418,6 +1418,12 @@ p {
   .hero-section {
     min-height: auto;
     padding: 6rem 0 3rem;
+    background: hsl(var(--v-bg));
+  }
+
+  .hero-background {
+    display: none;
+    /* Hide expensive/distracting orbs on mobile */
   }
 
   .hero-section .container {
@@ -1483,11 +1489,13 @@ p {
 
   .hero-visual {
     margin-top: 0;
+    perspective: 1000px;
   }
 
   .form-preview-card {
     max-width: 100%;
     padding: 1.25rem;
+    transform: scale(0.9);
   }
 
   /* Features Section - Reduce padding */
@@ -1601,7 +1609,8 @@ p {
   }
 
   .hero-visual {
-    margin-top: 2.5rem;
+    display: none;
+    /* Hide heavy visuals on very small mobile to focus on CTA */
   }
 
   .form-preview-card {
@@ -2780,9 +2789,14 @@ p {
 }
 
 @media (max-width: 768px) {
+  .template-showcase-section {
+    min-height: auto;
+    padding: 4rem 1rem;
+  }
+
   .orbital-showcase-container {
-    height: 500px;
-    margin: 2rem 0;
+    height: 400px;
+    margin: 1rem 0;
     overflow: hidden;
   }
 
@@ -2791,6 +2805,10 @@ p {
   }
 
   .orbital-stage {
-    transform: scale(0.7);
+    transform: scale(0.65);
+  }
+
+  .orbital-hub {
+    display: none;
   }
 }
