@@ -21,25 +21,28 @@ const createForm = async (userId, data) => {
   });
 };
 
-const getUserForms = async (userId, { page = 1, limit = 10, search, sort = 'newest' }) => {
+const getUserForms = async (userId, { page = 1, limit = 10, search, sort = 'newest', status = 'all' }) => {
   const skip = (page - 1) * limit;
   const take = parseInt(limit);
 
   // Sorting logic
   let orderBy = { createdAt: 'desc' };
   if (sort === 'oldest') orderBy = { createdAt: 'asc' };
-  if (sort === 'a-z') orderBy = { title: 'asc' };
-  if (sort === 'z-a') orderBy = { title: 'desc' };
+  if (sort === 'az' || sort === 'a-z') orderBy = { title: 'asc' };
+  if (sort === 'za' || sort === 'z-a') orderBy = { title: 'desc' };
 
   // Filtering logic
   const where = {
     ownerId: userId,
-    deletedAt: null, // Only fetch non-deleted forms
+    deletedAt: null,
     ...(search && {
       OR: [
         { title: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } }
       ]
+    }),
+    ...(status !== 'all' && {
+      isPublic: status === 'live'
     })
   };
 

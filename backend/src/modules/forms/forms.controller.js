@@ -14,8 +14,8 @@ const create = async (req, res, next) => {
 
 const list = async (req, res, next) => {
   try {
-    const { page, limit, search, sort } = req.query;
-    const result = await formService.getUserForms(req.user.userId, { page, limit, search, sort });
+    const { page, limit, search, sort, status } = req.query;
+    const result = await formService.getUserForms(req.user.userId, { page, limit, search, sort, status });
     res.json(result);
   } catch (err) {
     next(err);

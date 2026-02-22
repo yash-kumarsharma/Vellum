@@ -2106,6 +2106,14 @@ p {
   left: 0;
   overflow-y: auto;
   z-index: 100;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sidebar collapsed state is purely for mobile */
+@media (min-width: 1024px) {
+  .dashboard-sidebar.collapsed {
+    width: 240px;
+  }
 }
 
 .sidebar-nav {
@@ -2123,6 +2131,9 @@ p {
   font-weight: 500;
   font-size: 0.9375rem;
   border-left: 3px solid transparent;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .sidebar-nav-item:hover {
@@ -2141,9 +2152,16 @@ p {
 .dashboard-content-wrapper {
   margin-left: 240px;
   flex: 1;
-  padding: 2rem;
+  padding: 2.5rem 2.5rem 5rem 2.5rem;
   overflow-y: auto;
-  min-height: calc(100vh - 72px);
+  height: calc(100vh - 72px);
+}
+
+/* Sidebar collapsed state - mobile only, no desktop collapse */
+@media (max-width: 768px) {
+  .dashboard-content-wrapper.sidebar-collapsed {
+    margin-left: 80px;
+  }
 }
 
 /* View Header */
@@ -2563,6 +2581,273 @@ p {
 .template-info p {
   font-size: 0.8125rem;
   color: hsl(var(--v-text-muted));
+}
+
+/* ========================================
+   DASHBOARD EVOLUTION STYLES
+   ======================================== */
+
+.stat-card-inner {
+  background: linear-gradient(145deg, hsl(var(--v-surface)), hsl(var(--v-bg)));
+  border: 1px solid hsl(var(--v-border));
+  color: hsl(var(--v-text-main));
+}
+
+.stat-icon-enhanced-wrapper {
+  background: hsl(var(--v-primary) / 0.1);
+  color: hsl(var(--v-primary));
+}
+
+.stat-trend-indicator {
+  font-size: 0.8rem;
+  color: #10b981;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.form-card-link-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  text-decoration: none;
+}
+
+.form-status-badge-container {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.form-status-indicator {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.form-status-indicator.live {
+  background: hsl(142 76% 36% / 0.1);
+  color: hsl(142 76% 36%);
+}
+
+.form-status-indicator.private {
+  background: hsl(215 16% 47% / 0.1);
+  color: hsl(215 16% 47%);
+}
+
+.form-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.form-card-body-container {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-card-title-text {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  color: hsl(var(--v-text-main));
+  font-weight: 600;
+}
+
+.form-card-description-text {
+  font-size: 0.875rem;
+  color: hsl(var(--v-text-muted));
+  margin-bottom: 1.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.form-card-footer-container {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid hsl(var(--v-border) / 0.5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-responses-count {
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: hsl(var(--v-text-muted));
+}
+
+.form-delete-icon-button {
+  padding: 0.5rem;
+  border-radius: 6px;
+  color: #ef4444;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-delete-icon-button:hover {
+  background: #fee2e2;
+  transform: scale(1.1);
+}
+
+.dashboard-hero-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3rem;
+  gap: 2rem;
+}
+
+.view-header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid hsl(var(--v-border));
+}
+
+.search-field-wrapper {
+  width: 300px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search-field-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  color: inherit;
+  width: 100%;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+  gap: 1rem;
+}
+
+.analytics-placeholder {
+  padding: 3rem;
+  text-align: center;
+}
+
+.analytics-placeholder-icon {
+  color: hsl(var(--v-primary) / 0.3);
+  margin-bottom: 1.5rem;
+  margin-inline: auto;
+}
+
+/* Custom Charts */
+.chart-container {
+  width: 100%;
+  height: 250px;
+  position: relative;
+  margin-top: 1rem;
+}
+
+.chart-grid-line {
+  stroke: hsl(var(--v-border));
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.chart-axis-label {
+  font-size: 10px;
+  fill: hsl(var(--v-text-muted));
+  font-weight: 500;
+}
+
+.chart-bar-bg {
+  height: 8px;
+  background: hsl(var(--v-border) / 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.chart-bar-fill {
+  height: 100%;
+  background: hsl(var(--v-primary));
+  border-radius: 4px;
+  transition: width 1s ease-out;
+}
+
+.chart-tooltip {
+  position: absolute;
+  background: hsl(var(--v-surface));
+  border: 1px solid hsl(var(--v-border));
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rbg(0 0 0 / 0.1);
+  z-index: 100;
+}
+
+.chart-dot {
+  fill: hsl(var(--v-bg));
+  stroke: hsl(var(--v-primary));
+  stroke-width: 2;
+  transition: r 0.2s;
+}
+
+.chart-dot:hover {
+  r: 6;
+}
+
+.sidebar-toggle-btn {
+  position: absolute;
+  top: 1rem;
+  right: -12px;
+  width: 24px;
+  height: 24px;
+  background: hsl(var(--v-surface));
+  border: 1px solid hsl(var(--v-border));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  color: hsl(var(--v-text-muted));
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-toggle-btn:hover {
+  color: hsl(var(--v-primary));
+  transform: scale(1.1);
+  border-color: hsl(var(--v-primary) / 0.5);
+}
+
+.collapsed .sidebar-nav-item span {
+  display: none;
+}
+
+.collapsed .sidebar-nav-item {
+  justify-content: center;
+  padding: 0.875rem 0;
 }
 
 /* Template Showcase - 3D Stack */
