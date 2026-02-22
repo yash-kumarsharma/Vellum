@@ -5,13 +5,30 @@ import { useNavigate } from 'react-router-dom';
 
 const HeroSection = () => {
     const navigate = useNavigate();
+    const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+
+    const handleMouseMove = (e) => {
+        const { clientX, clientY } = e;
+        const moveX = (clientX - window.innerWidth / 2) / 50;
+        const moveY = (clientY - window.innerHeight / 2) / 50;
+        setMousePosition({ x: moveX, y: moveY });
+    };
 
     return (
-        <section className="hero-section">
+        <section className="hero-section" onMouseMove={handleMouseMove}>
             <div className="hero-background">
-                <div className="gradient-orb orb-1"></div>
-                <div className="gradient-orb orb-2"></div>
-                <div className="gradient-orb orb-3"></div>
+                <motion.div
+                    animate={{ x: mousePosition.x * 2, y: mousePosition.y * 2 }}
+                    className="gradient-orb orb-1"
+                ></motion.div>
+                <motion.div
+                    animate={{ x: -mousePosition.x * 1.5, y: -mousePosition.y * 1.5 }}
+                    className="gradient-orb orb-2"
+                ></motion.div>
+                <motion.div
+                    animate={{ x: mousePosition.x * 1, y: -mousePosition.y * 1 }}
+                    className="gradient-orb orb-3"
+                ></motion.div>
             </div>
 
             <div className="container">
@@ -63,10 +80,10 @@ const HeroSection = () => {
                         <button
                             className="btn-secondary btn-large"
                             onClick={() => {
-                                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                                document.getElementById('templates')?.scrollIntoView({ behavior: 'smooth' });
                             }}
                         >
-                            See How It Works
+                            Explore Templates
                         </button>
                     </motion.div>
 
@@ -94,12 +111,17 @@ const HeroSection = () => {
                 </div>
 
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, scale: 0.9, rotateY: 10 }}
+                    animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                    whileHover={{ scale: 1.02, rotateY: -5, rotateX: 5 }}
                     transition={{ duration: 1, delay: 0.4 }}
                     className="hero-visual"
                 >
-                    <div className="form-preview-card">
+                    <motion.div
+                        animate={{ y: [0, -15, 0] }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                        className="form-preview-card"
+                    >
                         <div className="card-header">
                             <div className="card-dots">
                                 <span style={{ background: '#ef4444' }}></span>
@@ -138,11 +160,11 @@ const HeroSection = () => {
                                     </div>
                                 </div>
                             </div>
-                            <button className="form-submit-preview">
+                            <button className="form-submit-preview" style={{ transition: 'all 0.3s' }}>
                                 Submit Feedback
                             </button>
                         </div>
-                    </div>
+                    </motion.div>
                 </motion.div>
             </div>
         </section>

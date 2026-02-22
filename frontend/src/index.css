@@ -37,6 +37,8 @@
 
 .theme-dark {
   --v-bg: 222 47% 6%;
+  --v-bg-color: #0f172a;
+  --v-bg-gradient: radial-gradient(circle at 10% 20%, rgb(15, 23, 42) 0%, rgb(2, 6, 23) 90%);
   --v-surface: 222 47% 11%;
   --v-surface-raised: 217 33% 17%;
 
@@ -191,11 +193,41 @@ body {
   background-size: 24px 24px;
 }
 
-.bg-grid-pattern {
-  background-size: 40px 40px;
-  background-image:
-    linear-gradient(to right, hsl(var(--v-border) / 0.4) 1px, transparent 1px),
-    linear-gradient(to bottom, hsl(var(--v-border) / 0.4) 1px, transparent 1px);
+/* Section Headers */
+.section-header-centered {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 2rem;
+}
+
+.section-title-large {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.section-subtitle-centered {
+  font-size: 1.125rem;
+  color: hsl(var(--v-text-muted));
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 6px 14px;
+  background: hsl(var(--v-primary) / 0.1);
+  color: hsl(var(--v-primary));
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
 }
 
 /* Dashboard Backgrounds */
@@ -436,7 +468,7 @@ p {
   position: sticky;
   top: 0;
   z-index: 1000;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
 }
 
 .brand-text {
@@ -604,6 +636,7 @@ p {
   align-items: center;
   padding: 2rem 0;
   overflow: hidden;
+  background: hsl(var(--v-bg));
 }
 
 .hero-section .container {
@@ -677,6 +710,12 @@ p {
   66% {
     transform: translate(-20px, 20px) scale(0.9);
   }
+}
+
+/* Dark Theme Adjustments for Orbs */
+.theme-dark .gradient-orb {
+  opacity: 0.15;
+  filter: blur(100px);
 }
 
 .hero-content {
@@ -2038,13 +2077,13 @@ p {
   right: 0;
   z-index: 1000;
   height: 72px;
-  background: rgba(255, 255, 255, 0.8);
+  background: hsl(var(--v-surface) / 0.8);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid hsl(var(--v-border));
 }
 
 .theme-dark .vellum-nav {
-  background: rgba(15, 23, 42, 0.8);
+  background: hsl(var(--v-surface) / 0.9);
 }
 
 /* Sidebar */
@@ -2515,4 +2554,243 @@ p {
 .template-info p {
   font-size: 0.8125rem;
   color: hsl(var(--v-text-muted));
+}
+
+/* Template Showcase - 3D Stack */
+.template-showcase-section {
+  min-height: 100vh;
+  padding: 2rem;
+  background: hsl(var(--v-bg));
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
+.showcase-cta-bottom {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.cta-hint {
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  color: hsl(var(--v-text-muted));
+  font-weight: 500;
+}
+
+
+
+
+
+
+/* Orbital Template Showcase */
+.orbital-showcase-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 2000px;
+  position: relative;
+  min-height: 400px;
+}
+
+.orbital-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+
+.orbital-item-wrapper {
+  position: absolute;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+/* Mini Form Preview Card */
+.orbital-form-card {
+  width: 280px;
+  background: hsl(var(--v-surface) / 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.1);
+  border: 1px solid hsl(var(--v-border));
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.orbital-form-card.active {
+  box-shadow: 0 25px 50px -12px var(--accent-color);
+  border-color: var(--accent-color);
+  transform: translateY(-10px);
+}
+
+.mini-card-header {
+  padding: 1rem;
+  background: hsl(var(--v-surface-raised) / 0.5);
+  border-bottom: 1px solid hsl(var(--v-border));
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mini-card-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.mini-card-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.mini-card-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: hsl(var(--v-text-muted));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mini-card-body {
+  padding: 1.25rem;
+}
+
+.mini-form-field {
+  margin-bottom: 0.75rem;
+}
+
+.mini-field-label {
+  width: 40%;
+  height: 6px;
+  background: hsl(var(--v-border));
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.mini-field-input {
+  width: 100%;
+  height: 28px;
+  background: hsl(var(--v-bg) / 0.5);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.mini-field-input span {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.mini-submit-btn {
+  margin-top: 1rem;
+  width: 100%;
+  height: 32px;
+  background: var(--accent-color);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  box-shadow: 0 4px 10px -2px var(--accent-color);
+  transition: all 0.3s;
+}
+
+/* Orbital Hub */
+.orbital-hub {
+  position: absolute;
+  z-index: 0;
+}
+
+.hub-inner {
+  width: 100px;
+  height: 100px;
+  background: hsl(var(--v-surface));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 40px -10px hsl(var(--v-primary) / 0.3);
+  border: 1px solid hsl(var(--v-primary) / 0.1);
+  color: hsl(var(--v-primary));
+  position: relative;
+  z-index: 2;
+}
+
+.hub-rings span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid hsl(var(--v-primary) / 0.1);
+  border-radius: 50%;
+  animation: hub-ring-pulse 4s infinite linear;
+}
+
+.hub-rings span:nth-child(1) {
+  width: 200px;
+  height: 200px;
+  animation-delay: 0s;
+}
+
+.hub-rings span:nth-child(2) {
+  width: 400px;
+  height: 400px;
+  animation-delay: 1s;
+}
+
+.hub-rings span:nth-child(3) {
+  width: 600px;
+  height: 600px;
+  animation-delay: 2s;
+}
+
+@keyframes hub-ring-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .orbital-showcase-container {
+    height: 500px;
+    margin: 2rem 0;
+    overflow: hidden;
+  }
+
+  .orbital-form-card {
+    width: 220px;
+  }
+
+  .orbital-stage {
+    transform: scale(0.7);
+  }
 }

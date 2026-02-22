@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import HeroSection from '../components/homepage/HeroSection';
 import FeaturesShowcase from '../components/homepage/FeaturesShowcase';
+import TemplateShowcase from '../components/homepage/TemplateShowcase';
 import HowItWorks from '../components/homepage/HowItWorks';
 import StatsSection from '../components/homepage/StatsSection';
 import Footer from '../components/Footer';
@@ -23,6 +24,7 @@ const HomePage = () => {
             <HeroSection />
             <FeaturesShowcase />
             <HowItWorks />
+            <TemplateShowcase />
             <StatsSection />
             <Footer />
         </div>
